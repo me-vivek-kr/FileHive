@@ -7,10 +7,10 @@ data class StorageStats(
     val totalBytes: Long,
     val usedBytes: Long,
     val freeBytes: Long,
-    val usedPercent: Double
+    val usedPercent: Float
 )
 
-fun readStorageStats(): StorageStats{
+fun readInternalStorageStats(): StorageStats {
     val path = Environment.getExternalStorageDirectory().absolutePath
     val stat = StatFs(path)
 
@@ -19,8 +19,7 @@ fun readStorageStats(): StorageStats{
     val usedBytes = totalBytes - freeBytes
 
     val usedPercent =
-        if (totalBytes > 0) usedBytes.toDouble() * 100f / totalBytes.toDouble()
-        else 0.0
+        if (totalBytes > 0L) (usedBytes.toFloat() / totalBytes.toFloat()) * 100f else 0f
 
     return StorageStats(
         totalBytes = totalBytes,
@@ -30,7 +29,7 @@ fun readStorageStats(): StorageStats{
     )
 }
 
-fun Long.toGbString(decimals: Int = 1): String {
+fun Long.toGbString(decimals: Int = 2): String {
     val gb = this.toDouble() / (1024.0 * 1024.0 * 1024.0)
     return String.format("%.${decimals}f GB", gb)
 }

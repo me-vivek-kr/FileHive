@@ -25,8 +25,7 @@ fun AppNavigation() {
 
         composable("home") {
             HomeScreen(
-                onOpenLocalStorage = {
-                    val rootPath = "/storage/emulated/0"
+                onOpenLocalStorage = { rootPath ->
                     val encoded = Uri.encode(rootPath)
                     navController.navigate("folderPath/$encoded")
                 },
