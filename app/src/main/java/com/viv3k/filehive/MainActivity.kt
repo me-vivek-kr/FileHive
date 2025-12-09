@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.viv3k.filehive.ui.common.AppNavigation
+import com.viv3k.filehive.ui.navigation.AppNavigation
 import com.viv3k.filehive.ui.StoragePermissionGate
 
 class MainActivity : ComponentActivity() {

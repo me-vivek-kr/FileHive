@@ -1,4 +1,4 @@
-package com.viv3k.filehive.ui.local
+package com.viv3k.filehive.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

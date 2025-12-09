@@ -1,4 +1,4 @@
-package com.viv3k.filehive.ui.common
+package com.viv3k.filehive.ui.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
@@ -8,8 +8,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.viv3k.filehive.ui.local.LocalScreen
-import com.viv3k.filehive.ui.screens.FolderScreen
+import com.viv3k.filehive.ui.screens.LocalScreen
+import com.viv3k.filehive.ui.screens.folder.FolderScreen
 import com.viv3k.filehive.ui.screens.HomeScreen
 import com.viv3k.filehive.ui.screens.SplashScreen
 
@@ -25,8 +25,7 @@ fun AppNavigation() {
 
         composable("home") {
             HomeScreen(
-                onOpenLocalStorage = {
-                    val rootPath = "/storage/emulated/0"
+                onOpenLocalStorage = { rootPath ->
                     val encoded = Uri.encode(rootPath)
                     navController.navigate("folderPath/$encoded")
                 },

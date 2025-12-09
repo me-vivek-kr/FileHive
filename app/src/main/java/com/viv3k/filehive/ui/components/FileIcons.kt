@@ -1,4 +1,4 @@
-package com.viv3k.filehive.ui.utils
+package com.viv3k.filehive.ui.components
 
 import com.viv3k.filehive.R
 import java.io.File

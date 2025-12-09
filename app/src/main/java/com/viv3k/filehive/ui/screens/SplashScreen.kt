@@ -3,10 +3,20 @@ package com.viv3k.filehive.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +52,7 @@ fun SplashScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(top = 30.dp)
                 .height(360.dp)
         ) {
             // big central bubble
@@ -109,7 +120,7 @@ fun SplashScreen(
                             Modifier
                                 .size(6.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF7C6BFF))
+                                .background(Color(0xFF3e94a2))
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Box(
@@ -155,7 +166,7 @@ fun SplashScreen(
                             .clip(RoundedCornerShape(28.dp))
                             .background(
                                 brush = Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF8A7AFF), Color(0xFF7C6BFF))
+                                    colors = listOf(Color(0xFF315F6B), Color(0xFF3e94a2))
                                 )
                             )
                             .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
