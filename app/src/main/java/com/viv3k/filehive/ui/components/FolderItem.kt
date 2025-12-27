@@ -35,7 +35,7 @@ fun FolderItem(name: String, onFolderClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Icon(
-                painter = painterResource(id = R.drawable.folder),
+                painter = painterResource(id = R.drawable.folder_new),
                 contentDescription = "Folder",
                 tint = Color.Unspecified,
                 modifier = Modifier.size(35.dp)

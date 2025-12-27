@@ -14,7 +14,7 @@ object FileIcons {
     fun getIcon(file: File): Int {
 
         if (file.isDirectory) {
-            return R.drawable.folder       // folder icon
+            return R.drawable.folder_new     // folder icon
         }
 
         val name = file.name.lowercase()
@@ -22,17 +22,17 @@ object FileIcons {
         val ext = name.substringAfterLast('.', missingDelimiterValue = "")
 
         return when {
-            imageExt.contains(ext) -> R.drawable.image
-            videoExt.contains(ext) -> R.drawable.video
-            audioExt.contains(ext) -> R.drawable.audio
-            docExt.contains(ext)   -> R.drawable.doc
-            zipExt.contains(ext)   -> R.drawable.zip
+            imageExt.contains(ext) -> R.drawable.category_images
+            videoExt.contains(ext) -> R.drawable.category_videos
+            audioExt.contains(ext) -> R.drawable.category_audio
+            docExt.contains(ext)   -> R.drawable.category_audio
+            zipExt.contains(ext)   -> R.drawable.category_archives
 
-            name.endsWith(".apk")  -> R.drawable.apk
-            name.endsWith(".pdf")  -> R.drawable.pdf
-            name.endsWith(".txt")  -> R.drawable.txt
+            name.endsWith(".apk")  -> R.drawable.category_apk
+            name.endsWith(".pdf")  -> R.drawable.category_pdf
+            name.endsWith(".txt")  -> R.drawable.category_documents
 
-            else -> R.drawable.other
+            else -> R.drawable.category_documents
         }
     }
 }

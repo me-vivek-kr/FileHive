@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,16 +31,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.R
+import kotlinx.coroutines.launch
+
+data class OnboardingPage(
+    val image: Int ?= null,
+    val title: String,
+    val description: String
+)
 
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier.fillMaxSize(),
     onStartClick: () -> Unit = {}
 ) {
+
+    val pages = listOf(
+        OnboardingPage(
+            title = "Manage Your\nFile Smartly",
+            description = "Manage your digital file easily & smartly"
+        ),
+        OnboardingPage(
+            title = "Organize\nEverything",
+            description = "Keep your files organized in one place"
+        ),
+        OnboardingPage(
+            title = "Secure Your\nData",
+            description = "Lock and protect your private files"
+        )
+    )
+
+    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val scope = rememberCoroutineScope()
+
+
     Box(
         modifier = modifier
             // main dark background
@@ -109,56 +139,58 @@ fun SplashScreen(
                         .padding(horizontal = 28.dp, vertical = 28.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // small page indicator dots (centered)
+                    // small page indicator dots
                     Row(
-                        modifier = Modifier
-                            .padding(bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF3e94a2))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFD6D6E0))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFD6D6E0))
-                        )
+                        repeat(pages.size) { iteration ->
+                            val isSelected = pagerState.currentPage == iteration
+                            val width = if (isSelected) 20.dp else 8.dp
+                            val color = if (isSelected) Color(0xFF3e94a2) else Color(0xFF3E414B)
+
+                            Box(
+                                Modifier
+                                    .padding(4.dp)
+                                    .height(8.dp) // Height stays constant
+                                    .width(width) // Width changes (Pill vs Circle)
+                                    .clip(RoundedCornerShape(4.dp)) // Fully rounded corners
+                                    .background(color)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "Manage Your\nFile Smartly",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        lineHeight = 34.sp
-                    )
+                    HorizontalPager(state = pagerState) { page ->
+                        Column(horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()){
+                            Text(
+                                text = pages[page].title,
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                lineHeight = 34.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
-                    Text(
-                        text = "Manage your digital file easily & smartly",
-                        fontSize = 14.sp,
-                        color = Color(0xFFB0B6BD)
-                    )
+                            Text(
+                                text = pages[page].description,
+                                fontSize = 14.sp,
+                                color = Color(0xFFB0B6BD),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(22.dp))
 
-                    // Start button (pill) with subtle shadow
+                    //Button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.7f)
@@ -170,15 +202,31 @@ fun SplashScreen(
                                 )
                             )
                             .shadow(elevation = 8.dp, shape = RoundedCornerShape(28.dp))
-                            .clickable { onStartClick() },
+                            .clickable {
+                                if (pagerState.currentPage == pages.size - 1) {
+                                    onStartClick()
+                                } else {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                    }
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Text(text = "Start", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                            val buttonText = if (pagerState.currentPage == pages.size - 1) "Start" else "Next"
+
+                            Text(
+                                text = buttonText,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
                             Spacer(modifier = Modifier.width(10.dp))
+
                             Image(
                                 painter = painterResource(id = R.drawable.arrow_right),
                                 contentDescription = "arrow",

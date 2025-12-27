@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.viv3k.filehive.ui.screens.LocalScreen
 import com.viv3k.filehive.ui.screens.folder.FolderScreen
-import com.viv3k.filehive.ui.screens.HomeScreen
+import com.viv3k.filehive.ui.screens.homescreen.HomeScreen
 import com.viv3k.filehive.ui.screens.SplashScreen
 
 @Composable
