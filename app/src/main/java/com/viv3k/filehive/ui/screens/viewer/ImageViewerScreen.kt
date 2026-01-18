@@ -183,7 +183,7 @@ fun ImageViewerScreen(
                 }
 
                 IconButton(
-                    onClick = { /* TODO: Menu Options */ },
+                    onClick = {  },
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), CircleShape)
                 ) {
                     Icon(
@@ -224,14 +224,14 @@ fun ImageViewerScreen(
                 ViewerActionItem(
                     icon = R.drawable.download,
                     label = "Save",
-                    onClick = { /* TODO */ }
+                    onClick = {  }
                 )
 
                 // Info
                 ViewerActionItem(
                     icon = R.drawable.info,
                     label = "Info",
-                    onClick = { /* TODO: Show Details Dialog */ }
+                    onClick = { }
                 )
 
                 // Delete
