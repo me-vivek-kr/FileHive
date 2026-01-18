@@ -25,6 +25,7 @@ fun FileOptionsDropdownMenu (
     onCutClick: ()-> Unit,
     onCopyClick: ()-> Unit,
     onDeleteClick: ()-> Unit,
+    onRenameClick: () -> Unit
 ){
     DropdownMenu(
         expanded = expanded,
@@ -86,7 +87,12 @@ fun FileOptionsDropdownMenu (
 
         // 4. Other Standard Items
         FileOptionItem("Share", R.drawable.share, onDismissRequest)
-        FileOptionItem("Rename", R.drawable.rename, onDismissRequest)
+        FileOptionItem(
+            "Rename",
+            R.drawable.rename,
+            onDismissRequest,
+            onClick = onRenameClick
+        )
         FileOptionItem("Archive", R.drawable.archive, onDismissRequest)
 
         HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
@@ -138,6 +144,7 @@ fun PreviewFileOption(){
         onDismissRequest = {},
         onCutClick = {},
         onCopyClick = {},
-        onDeleteClick = {}
+        onDeleteClick = {},
+        onRenameClick = {}
     )
 }

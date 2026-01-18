@@ -1,4 +1,4 @@
-package com.viv3k.filehive.ui.screens.folder
+package com.viv3k.filehive.ui.screens.search
 
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -22,121 +22,100 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.R
-import com.viv3k.filehive.data.model.FolderModel
+import com.viv3k.filehive.data.common.FileOpener
 import com.viv3k.filehive.ui.components.FileThumbnail
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
 import com.viv3k.filehive.ui.utils.formatTimestamp
 import com.viv3k.filehive.ui.utils.readableFileSize
-import java.io.File
 
 @Composable
-fun FileRow(
-    entry: FolderModel,
-    onClick: () -> Unit,
-    onDeleteOptionClick: () -> Unit,
-    onRenameOptionClick: () -> Unit
+fun SearchResultItem(
+    result: SearchResult,
+    onDeleteOptionClick: () -> Unit = {}
 ) {
-    val cardShape = RoundedCornerShape(16.dp)
+    val context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     val isSelected = expanded.value
+    val cardShape = RoundedCornerShape(16.dp)
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
             .combinedClickable(
-                onClick = onClick,
+                onClick = {
+                    if (result.file.isDirectory) {
+                        // Handle folder navigation if needed
+                    } else {
+                         FileOpener.openFile(context, result.file)
+                    }
+                },
                 onLongClick = { expanded.value = true }
             ),
-        // This condition is correct: if expanded is true, color changes instantly
         color = if (isSelected) Color(0xFF0F6FFC).copy(alpha = 0.3f) else Color(0xFF1A1C21),
-        shape = RoundedCornerShape(16.dp),
+        shape = cardShape,
         tonalElevation = 3.dp,
         shadowElevation = 3.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(
-                    start = 12.dp,
-                    top = 10.dp,
-                    bottom = 10.dp
-                ),
-            // Removed redundant .clickable { onClick() } here as Surface handles it
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            // Icon
-//            Icon(
-//                painter = painterResource(id = FileIcons.getIcon(entry.file)),
-//                contentDescription = null,
-//                tint = Color.Unspecified,
-//                modifier = Modifier.size(36.dp)
-//            )
+            // Thumbnail
             FileThumbnail(
-                file = entry.file,
+                file = result.file,
                 modifier = Modifier.size(36.dp),
                 iconSize = 54.dp
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Name + info (LEFT)
+            // Name + Path Info (LEFT)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
-                    text = entry.file.name.ifEmpty { entry.file.absolutePath },
+                    text = result.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                val infoText = if (entry.file.isDirectory) {
-                    if (entry.fileCount == 0)
-                        "0 items"
-                    else
-                        "${entry.fileCount} items • ${readableFileSize(entry.totalSize)}"
-                } else {
-                    readableFileSize(entry.totalSize)
-                }
-
+                // Show Path + Size
                 Text(
-                    text = infoText,
+                    text = "${readableFileSize(result.size)} • ${result.path}",
                     fontSize = 12.sp,
                     color = Color(0xFF9AA0A6),
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
             // Timestamp (RIGHT)
             Text(
-                text = formatTimestamp(entry.lastModified),
+                text = formatTimestamp(result.lastModified),
                 fontSize = 10.sp,
                 color = Color(0xFF9AA0A6)
             )
 
+            // Options
             Box {
-                IconButton(
-                    onClick = {
-                        // This single state change triggers both the menu opening
-                        // AND the Surface color change above simultaneously.
-                        expanded.value = true
-                    }
-                ) {
+                IconButton(onClick = { expanded.value = true }) {
                     Icon(
                         painter = painterResource(id = R.drawable.more_vertical),
                         contentDescription = "Options",
-                        // Optional: Change icon tint when selected too
                         tint = if (isSelected) Color.White else Color(0xFF9AA0A6),
                     )
                 }
@@ -146,27 +125,13 @@ fun FileRow(
                     onDismissRequest = { expanded.value = false },
                     onCutClick = { expanded.value = false },
                     onCopyClick = { expanded.value = false },
+                    onRenameClick = { expanded.value = false },
                     onDeleteClick = {
                         expanded.value = false
                         onDeleteOptionClick()
-                    },
-                    onRenameClick = {
-                        expanded.value = false
-                        onRenameOptionClick()
                     }
                 )
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PreviewFileRow(){
-    FileRow(
-        entry = FolderModel(File("/storage/emulated/0"), 5, 1024000, System.currentTimeMillis()),
-        onClick = {},
-        onDeleteOptionClick = {},
-        onRenameOptionClick = {}
-    )
 }

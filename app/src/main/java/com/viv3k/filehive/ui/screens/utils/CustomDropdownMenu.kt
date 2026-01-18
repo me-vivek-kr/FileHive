@@ -22,11 +22,13 @@ import com.viv3k.filehive.ui.screens.folder.MenuItemData
 @Composable
 fun CustomDropdownMenu(
     expanded: Boolean,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onNavigateTo: (String) -> Unit,
+    onNewClick: () -> Unit
 ){
     val menuItems = listOf(
         MenuItemData("Home", R.drawable.home, Color(0xFF3e94a2)),         // Teal
-        MenuItemData("New Folder", R.drawable.folder_plus, Color(0xFFFFA000)), // Orange/Gold
+        MenuItemData("New", R.drawable.plus, Color(0xFFFFA000)), // Orange/Gold
         MenuItemData("Upload", R.drawable.upload, Color(0xFF4CAF50)),     // Green
         MenuItemData("Locked", R.drawable.lock, Color(0xFF9C27B0)),       // Purple
         MenuItemData("Recycle Bin", R.drawable.trash, Color(0xFFF44336)), // Red
@@ -64,6 +66,12 @@ fun CustomDropdownMenu(
                 onClick = {
                     onDismissRequest()
                     // Handle specific item clicks here if needed
+                    when(item.text) {
+                        "New" -> onNewClick()
+                        "Recycle Bin" -> onNavigateTo("recycle_bin")
+                        "Home" -> onNavigateTo("home")
+                        // Add others as needed
+                    }
                 }
             )
         }

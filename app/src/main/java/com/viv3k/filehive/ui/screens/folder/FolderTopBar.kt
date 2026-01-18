@@ -35,7 +35,9 @@ fun FolderTopBar(
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
     expanded: Boolean,
-    onExpandChange: (Boolean) -> Unit
+    onExpandChange: (Boolean) -> Unit,
+    onNavigateTo: (String) -> Unit,
+    onNewClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -82,7 +84,9 @@ fun FolderTopBar(
 
             CustomDropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { onExpandChange(false) }
+                onDismissRequest = { onExpandChange(false) },
+                onNavigateTo = onNavigateTo,
+                onNewClick = onNewClick
             )
         }
     }
@@ -97,6 +101,8 @@ fun previewTopBar(){
         onBackClick = {},
         onSearchClick = {},
         expanded = false,
-        onExpandChange = {}
+        onExpandChange = {},
+        onNavigateTo = {},
+        onNewClick = {}
     )
 }

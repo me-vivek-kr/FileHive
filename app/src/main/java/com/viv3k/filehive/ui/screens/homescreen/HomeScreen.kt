@@ -54,7 +54,8 @@ data class RecentFile(
 @Composable
 fun HomeScreen(
     onFolderClick: (String) -> Unit,
-    onOpenLocalStorage: (String) -> Unit
+    onOpenLocalStorage: (String) -> Unit,
+    onRecycleBinClick: () -> Unit
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
@@ -236,7 +237,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = device.label,
                             subtitle = "$used / $total",
-                            iconRes = R.drawable.folder,
+                            iconRes = R.drawable.category_sdcard,
                             onClick = { onOpenLocalStorage(device.path) } // pass selected path
                         )
                     }
@@ -265,9 +266,12 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             QuickAccessGrid(items = quickAccessItems, onItemClick = { item ->
-                onFolderClick(item.label)
-            }
-            )
+                if (item.label == "Recycle") {
+                    onRecycleBinClick()
+                } else {
+                    onFolderClick(item.label)
+                }
+            })
 
             Text(
                 text = "Recent Files",
@@ -360,6 +364,7 @@ fun Modifier.clickableNoRipple(
 fun HomeScreenPreview() {
     HomeScreen(
         onFolderClick = {},
-        onOpenLocalStorage = {}
+        onOpenLocalStorage = {},
+        onRecycleBinClick = {}
     )
 }

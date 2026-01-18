@@ -55,7 +55,7 @@ fun StorageChip(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFF3e94a2)),
+                    .background(Color(0xFF282828)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(

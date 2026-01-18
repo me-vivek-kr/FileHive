@@ -5,34 +5,93 @@ import java.io.File
 
 object FileIcons {
 
-    private val imageExt = setOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic")
-    private val videoExt = setOf("mp4", "mkv", "mov", "avi", "wmv", "flv", "webm")
-    private val audioExt = setOf("mp3", "wav", "ogg", "aac", "m4a", "flac")
-    private val docExt   = setOf("pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt")
-    private val zipExt   = setOf("zip", "rar", "7z", "tar", "gz", "apk")
+    private val imageExt = setOf(
+        "jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif",
+        "svg", "ico",
+        "dng", "raw", "nef", "cr2"
+    )
+
+    private val videoExt = setOf(
+        "mp4", "mkv", "mov", "avi", "wmv", "flv", "webm", "3gp", "mpeg", "mpg", "ts", "m4v"
+    )
+
+    private val audioExt = setOf(
+        "mp3", "wav", "ogg", "aac", "m4a", "flac", "amr", "mid", "opus", "aiff", "alac"
+    )
+
+    private val wordExt = setOf(
+        "doc", "docx"
+    )
+
+    private val excelExt = setOf(
+        "xls", "xlsx"
+    )
+
+    private val pptExt = setOf(
+        "ppt", "pptx"
+    )
+
+    private val pdfExt = setOf(
+        "pdf"
+    )
+
+    private val textExt = setOf(
+        "txt", "md", "csv", "log", "json", "xml", "yaml", "yml", "ini"
+    )
+
+    private val fontExt = setOf(
+        "ttf", "otf", "woff", "woff2", "pfb"
+    )
+
+    private val archiveExt = setOf(
+        "zip", "rar", "7z", "tar", "gz", "bz2", "xz", "iso", "cab"
+    )
+
+    private val androidAppExt = setOf(
+        "apk"
+    )
+
+    private val androidPackageExt = setOf(
+        "aab", "xapk", "apkm", "apks"
+    )
+
+    private val codeExt = setOf(
+        "java", "kt", "cpp", "c", "h", "py", "js", "html", "css", "sh"
+    )
+
+    private val backupExt = setOf(
+        "bak", "backup", "tmp", "old"
+    )
 
     fun getIcon(file: File): Int {
 
         if (file.isDirectory) {
-            return R.drawable.folder_new     // folder icon
+            return R.drawable.folder_new
         }
 
-        val name = file.name.lowercase()
-
-        val ext = name.substringAfterLast('.', missingDelimiterValue = "")
+        val ext = file.extension.lowercase()
 
         return when {
-            imageExt.contains(ext) -> R.drawable.category_images
-            videoExt.contains(ext) -> R.drawable.category_videos
-            audioExt.contains(ext) -> R.drawable.category_audio
-            docExt.contains(ext)   -> R.drawable.category_audio
-            zipExt.contains(ext)   -> R.drawable.category_archives
+            imageExt.contains(ext)          -> R.drawable.image_file
+            videoExt.contains(ext)          -> R.drawable.video_file
+            audioExt.contains(ext)          -> R.drawable.audio_file
 
-            name.endsWith(".apk")  -> R.drawable.category_apk
-            name.endsWith(".pdf")  -> R.drawable.category_pdf
-            name.endsWith(".txt")  -> R.drawable.category_documents
+            wordExt.contains(ext)           -> R.drawable.doc_file
+            excelExt.contains(ext)          -> R.drawable.excel_file
+            pptExt.contains(ext)            -> R.drawable.ppt_file
+            pdfExt.contains(ext)            -> R.drawable.pdf_file
+            textExt.contains(ext)           -> R.drawable.text_file
 
-            else -> R.drawable.category_documents
+            fontExt.contains(ext)           -> R.drawable.font_file
+            archiveExt.contains(ext)        -> R.drawable.archive_file
+
+            androidAppExt.contains(ext)     -> R.drawable.apk_file
+            androidPackageExt.contains(ext) -> R.drawable.category_apk
+
+            codeExt.contains(ext)           -> R.drawable.code_file
+            backupExt.contains(ext)         -> R.drawable.backup_file
+
+            else                            -> R.drawable.blank_file
         }
     }
 }
