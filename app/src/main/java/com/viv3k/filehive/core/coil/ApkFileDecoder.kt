@@ -1,4 +1,4 @@
-package com.viv3k.filehive.data.coil
+package com.viv3k.filehive.core.coil
 
 import android.content.pm.PackageManager
 import android.graphics.Bitmap

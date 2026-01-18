@@ -2,7 +2,6 @@ package com.viv3k.filehive.ui.screens.folder
 
 import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,7 +58,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun FolderScreen(
     folderPath: String,
@@ -454,7 +452,6 @@ fun FolderScreen(
 }
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun FolderScreenPreview() {

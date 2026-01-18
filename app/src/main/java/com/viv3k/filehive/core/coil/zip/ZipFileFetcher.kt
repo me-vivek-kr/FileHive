@@ -1,4 +1,4 @@
-package com.viv3k.filehive.data.coil.zip
+package com.viv3k.filehive.core.coil.zip
 
 //import coil3.ImageLoader
 //import coil3.decode.DataSource
