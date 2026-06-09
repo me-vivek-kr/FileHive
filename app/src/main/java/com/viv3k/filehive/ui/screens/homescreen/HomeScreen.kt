@@ -55,7 +55,8 @@ data class RecentFile(
 fun HomeScreen(
     onFolderClick: (String) -> Unit,
     onOpenLocalStorage: (String) -> Unit,
-    onRecycleBinClick: () -> Unit
+    onRecycleBinClick: () -> Unit,
+    onLockedClick: () -> Unit
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
@@ -268,6 +269,8 @@ fun HomeScreen(
             QuickAccessGrid(items = quickAccessItems, onItemClick = { item ->
                 if (item.label == "Recycle") {
                     onRecycleBinClick()
+                } else if (item.label == "Locked") {
+                    onLockedClick()
                 } else {
                     onFolderClick(item.label)
                 }
@@ -365,6 +368,7 @@ fun HomeScreenPreview() {
     HomeScreen(
         onFolderClick = {},
         onOpenLocalStorage = {},
-        onRecycleBinClick = {}
+        onRecycleBinClick = {},
+        onLockedClick = {}
     )
 }

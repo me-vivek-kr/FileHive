@@ -101,4 +101,23 @@ class FolderViewModel : ViewModel() {
             }
         }
     }
+    fun lockFolder(context: android.content.Context, file: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val db = com.viv3k.filehive.data.database.AppDatabase.getDatabase(context)
+            val vaultRepo = com.viv3k.filehive.data.repository.VaultRepository(context, db.lockedFolderDao())
+            
+            val parent = file.parentFile
+            val success = vaultRepo.lockFolder(file)
+            
+            if (success) {
+                // Update local list
+                val updateList = currentFileList.filter { it.file.absolutePath != file.absolutePath }
+                updateStateWithList(updateList)
+                
+                if (parent != null) {
+                    FolderStatsCache.invalidate(parent.absolutePath)
+                }
+            }
+        }
+    }
 }

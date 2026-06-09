@@ -2,18 +2,7 @@ package com.viv3k.filehive.ui.screens.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -42,7 +31,7 @@ data class FilterItem(
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit = {},
-    viewModel: SearchViewModel = viewModel()
+    viewModel: SearchViewModel = viewModel(factory = SearchViewModel.Factory)
 ){
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -51,8 +40,6 @@ fun SearchScreen(
     val recentSearches by viewModel.recentSearches.collectAsState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-
-
 
     val filters = listOf(
         FilterItem("All", R.drawable.search),

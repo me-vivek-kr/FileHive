@@ -42,8 +42,8 @@ fun FileGrid(
     onImageClick: (String) -> Unit,
     onFileClick: (File) -> Unit,
     onRenameOptionClick: (File) -> Unit,
-    onDeleteOptionClick: (File) -> Unit
-
+    onDeleteOptionClick: (File) -> Unit,
+    onLockOptionClick: (File) -> Unit = {}
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(3), // 3 Columns as per image
@@ -68,7 +68,8 @@ fun FileGrid(
                     }
                 },
                 onRenameOptionClick = { onRenameOptionClick(entry.file) },
-                onDeleteOptionClick = { onDeleteOptionClick(entry.file) }
+                onDeleteOptionClick = { onDeleteOptionClick(entry.file) },
+                onLockOptionClick = { onLockOptionClick(entry.file) }
             )
         }
     }
@@ -79,7 +80,8 @@ fun FileGridItem(
     entry: FolderModel,
     onClick: () -> Unit,
     onRenameOptionClick: (File) -> Unit,
-    onDeleteOptionClick: (File) -> Unit
+    onDeleteOptionClick: (File) -> Unit,
+    onLockOptionClick: (File) -> Unit = {}
 ){
     val expanded = remember { mutableStateOf(false) }
     val isSelected = expanded.value
@@ -175,6 +177,10 @@ fun FileGridItem(
             onRenameClick = { // Add this
                 expanded.value = false
                 onRenameOptionClick(entry.file)
+            },
+            onLockClick = {
+                expanded.value = false
+                onLockOptionClick(entry.file)
             }
         )
     }
@@ -195,7 +201,8 @@ fun PreviewGrid() {
         onImageClick = {},
         onFileClick = {},
         onRenameOptionClick = {},
-        onDeleteOptionClick = {}
+        onDeleteOptionClick = {},
+        onLockOptionClick = {}
     )
 }
 
@@ -207,7 +214,8 @@ fun PreviewGridItem() {
             entry = FolderModel(File("/storage/emulated/0/Downloads"), 5, 1024000, System.currentTimeMillis()),
             onClick = {},
             onRenameOptionClick = {},
-            onDeleteOptionClick = {}
+            onDeleteOptionClick = {},
+            onLockOptionClick = {}
         )
     }
 }

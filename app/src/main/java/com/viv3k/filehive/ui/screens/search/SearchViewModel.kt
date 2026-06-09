@@ -1,14 +1,19 @@
 package com.viv3k.filehive.ui.screens.search
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.viv3k.filehive.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,7 +27,12 @@ data class SearchResult(
     val lastModified: Long
 )
 
-class SearchViewModel : ViewModel() {
+// Simple DataStore instance setup
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
+class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel() {
+
+    private val RECENT_SEARCH_KEY = stringSetPreferencesKey("recent_queries")
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -36,9 +46,16 @@ class SearchViewModel : ViewModel() {
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
 
-    // Recent searches (In a real app, save this to Room/DataStore)
-    private val _recentSearches = MutableStateFlow(listOf("Project files", "Vacation photos", "Music"))
-    val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
+    // Recent searches - observing from DataStore
+    val recentSearches: StateFlow<List<String>> = dataStore.data
+        .map { prefs ->
+            prefs[RECENT_SEARCH_KEY]?.toList() ?: emptyList()
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private var searchJob: Job? = null
 
@@ -47,18 +64,14 @@ class SearchViewModel : ViewModel() {
 
     fun onQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
-
-        // Cancel previous search job if user keeps typing (Debounce)
         searchJob?.cancel()
-
         if (newQuery.length < 2) {
             _searchResults.value = emptyList()
             _isSearching.value = false
             return
         }
-
         searchJob = viewModelScope.launch {
-            delay(500) // Debounce: wait 500ms before starting search
+            delay(500)
             _isSearching.value = true
             performSearch(newQuery, _selectedFilter.value)
         }
@@ -77,17 +90,26 @@ class SearchViewModel : ViewModel() {
         }
     }
 
-    fun onRecentSearchClick(query: String) {
-        onQueryChange(query)
+    fun addToRecent(query: String) {
+        if (query.isBlank()) return
+
+        viewModelScope.launch {
+            dataStore.edit { prefs ->
+                // Get existing, remove duplicate, add to top, take 5
+                val currentSet = prefs[RECENT_SEARCH_KEY] ?: emptySet()
+                val newList = currentSet.toMutableList()
+
+                newList.remove(query)
+                newList.add(0, query)
+
+                prefs[RECENT_SEARCH_KEY] = newList.take(5).toSet()
+            }
+        }
     }
 
-    fun addToRecent(query: String) {
-        val currentList = _recentSearches.value.toMutableList()
-        if (!currentList.contains(query)) {
-            currentList.add(0, query)
-            if (currentList.size > 5) currentList.removeAt(currentList.lastIndex) // Keep only top 5
-            _recentSearches.value = currentList
-        }
+    fun onRecentSearchClick(query: String) {
+        onQueryChange(query)
+        addToRecent(query)
     }
 
     private suspend fun performSearch(query: String, filter: String) {
@@ -100,7 +122,6 @@ class SearchViewModel : ViewModel() {
         _isSearching.value = false
     }
 
-    // 1️⃣ & 2️⃣ Recursive Search & Filter Logic
     private fun recursiveSearch(
         dir: File,
         query: String,
@@ -118,7 +139,6 @@ class SearchViewModel : ViewModel() {
             }
 
             // Recursive call for directories
-            // Optimization: Skip hidden folders or Android/data to prevent crashes/slowdowns
             if (file.isDirectory && !file.isHidden) {
                 recursiveSearch(file, query, filter, resultList)
             }
@@ -127,7 +147,7 @@ class SearchViewModel : ViewModel() {
 
     private fun isValidType(file: File, filter: String): Boolean {
         if (filter == "All") return true
-        if (file.isDirectory) return false // Filters usually apply to files
+        if (file.isDirectory) return false
 
         val ext = file.extension.lowercase()
         return when (filter) {
@@ -140,18 +160,6 @@ class SearchViewModel : ViewModel() {
         }
     }
 
-//    private fun mapFileToResult(file: File): SearchResult {
-//        val icon = when {
-//            file.isDirectory -> R.drawable.folder // Ensure you have folder icon
-//            file.extension.lowercase() in listOf("jpg", "png") -> R.drawable.image
-//            file.extension.lowercase() in listOf("mp4", "mkv") -> R.drawable.video
-//            file.extension.lowercase() in listOf("mp3", "wav") -> R.drawable.music
-//            file.extension.lowercase() in listOf("pdf", "doc") -> R.drawable.file
-//            else -> R.drawable.file
-//        }
-//        return SearchResult(file.name, file.parent ?: "", file, icon)
-//    }
-
     private fun mapFileToResult(file: File): SearchResult {
         val icon = R.drawable.file
 
@@ -163,6 +171,15 @@ class SearchViewModel : ViewModel() {
             size = file.length(),
             lastModified = file.lastModified()
         )
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val context = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Context
+                SearchViewModel(context.dataStore)
+            }
+        }
     }
 
 }

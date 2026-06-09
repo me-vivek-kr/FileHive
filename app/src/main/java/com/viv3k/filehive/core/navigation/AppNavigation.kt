@@ -3,6 +3,11 @@ package com.viv3k.filehive.core.navigation
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.path
 import androidx.navigation.NavHostController
@@ -18,6 +23,8 @@ import com.viv3k.filehive.ui.screens.homescreen.HomeScreen
 import com.viv3k.filehive.ui.screens.SplashScreen
 import com.viv3k.filehive.ui.screens.recyclebin.RecycleBinScreen
 import com.viv3k.filehive.ui.screens.search.SearchScreen
+import com.viv3k.filehive.ui.screens.vault.LockAuthScreen
+import com.viv3k.filehive.ui.screens.vault.VaultScreen
 import com.viv3k.filehive.ui.screens.viewer.ImageViewerScreen
 
 
@@ -40,7 +47,8 @@ fun AppNavigation() {
                     navController.navigate(Screen.Folder(path = rootPath))
                 },
                 onFolderClick = { },
-                onRecycleBinClick = { navController.navigate(Screen.RecycleBin) }
+                onRecycleBinClick = { navController.navigate(Screen.RecycleBin) },
+                onLockedClick = { navController.navigate(Screen.LockAuth) }
             )
         }
 
@@ -106,6 +114,30 @@ fun AppNavigation() {
             ImageViewerScreen(
                 filePath = viewerArgs.filePath,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.LockAuth>(
+            enterTransition = { slideInVertically(initialOffsetY = { it }, animationSpec = tween(300)) + fadeIn() },
+            exitTransition = { fadeOut() },
+            popExitTransition = { slideOutVertically(targetOffsetY = { it }, animationSpec = tween(300)) + fadeOut() }
+        ) {
+            LockAuthScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAuthSuccess = {
+                    navController.navigate(Screen.Vault) {
+                        popUpTo<Screen.LockAuth> { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable<Screen.Vault>(
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            VaultScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

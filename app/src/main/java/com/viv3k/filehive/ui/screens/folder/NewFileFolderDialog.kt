@@ -33,7 +33,7 @@ fun NewFileFolderDialog(
     onNewFolderClick: () -> Unit
 ){
     
-    Dialog(onDismissRequest = {}){
+    Dialog(onDismissRequest = onDismissRequest){
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = Color(0xFF16181D), // Dark Dialog Background

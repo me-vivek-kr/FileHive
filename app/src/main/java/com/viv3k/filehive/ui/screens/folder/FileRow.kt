@@ -40,7 +40,8 @@ fun FileRow(
     entry: FolderModel,
     onClick: () -> Unit,
     onDeleteOptionClick: () -> Unit,
-    onRenameOptionClick: () -> Unit
+    onRenameOptionClick: () -> Unit,
+    onLockOptionClick: () -> Unit = {}
 ) {
     val cardShape = RoundedCornerShape(16.dp)
     val expanded = remember { mutableStateOf(false) }
@@ -153,6 +154,10 @@ fun FileRow(
                     onRenameClick = {
                         expanded.value = false
                         onRenameOptionClick()
+                    },
+                    onLockClick = {
+                        expanded.value = false
+                        onLockOptionClick()
                     }
                 )
             }
@@ -167,6 +172,7 @@ fun PreviewFileRow(){
         entry = FolderModel(File("/storage/emulated/0"), 5, 1024000, System.currentTimeMillis()),
         onClick = {},
         onDeleteOptionClick = {},
-        onRenameOptionClick = {}
+        onRenameOptionClick = {},
+        onLockOptionClick = {}
     )
 }

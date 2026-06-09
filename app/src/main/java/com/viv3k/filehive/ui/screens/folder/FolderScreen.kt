@@ -316,6 +316,10 @@ fun FolderScreen(
                                 onDeleteOptionClick = { file -> // Add this
                                     fileToDelete = file
                                     showDeleteDialog = true
+                                },
+                                onLockOptionClick = { file ->
+                                    viewModel.lockFolder(context, file)
+                                    Toast.makeText(context, "Locked", Toast.LENGTH_SHORT).show()
                                 }
                             )
                         } else {
@@ -351,6 +355,10 @@ fun FolderScreen(
                                             onRenameOptionClick = {
                                                 fileToRename = entry.file
                                                 showRenameDialog = true
+                                            },
+                                            onLockOptionClick = {
+                                                viewModel.lockFolder(context, entry.file)
+                                                Toast.makeText(context, "Locked", Toast.LENGTH_SHORT).show()
                                             }
                                         )
                                     }

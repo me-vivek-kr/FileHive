@@ -25,7 +25,8 @@ fun FileOptionsDropdownMenu (
     onCutClick: ()-> Unit,
     onCopyClick: ()-> Unit,
     onDeleteClick: ()-> Unit,
-    onRenameClick: () -> Unit
+    onRenameClick: () -> Unit,
+    onLockClick: () -> Unit = {}
 ){
     DropdownMenu(
         expanded = expanded,
@@ -98,7 +99,14 @@ fun FileOptionsDropdownMenu (
         HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
 
         FileOptionItem("Hide", R.drawable.eye_off, onDismissRequest)
-        FileOptionItem("Encrypt", R.drawable.lock, onDismissRequest)
+        FileOptionItem(
+            "Lock / Vault", 
+            R.drawable.lock, 
+            onDismissRequest,
+            onClick = {
+                onLockClick()
+            }
+        )
 
         HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
 
@@ -145,6 +153,7 @@ fun PreviewFileOption(){
         onCutClick = {},
         onCopyClick = {},
         onDeleteClick = {},
-        onRenameClick = {}
+        onRenameClick = {},
+        onLockClick = {}
     )
 }
