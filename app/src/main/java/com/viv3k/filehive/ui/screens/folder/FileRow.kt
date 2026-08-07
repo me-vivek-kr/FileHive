@@ -1,15 +1,18 @@
 package com.viv3k.filehive.ui.screens.folder
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,7 +35,6 @@ import com.viv3k.filehive.R
 import com.viv3k.filehive.data.model.FolderModel
 import com.viv3k.filehive.ui.components.FileThumbnail
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
-import com.viv3k.filehive.ui.utils.formatTimestamp
 import com.viv3k.filehive.ui.utils.readableFileSize
 import java.io.File
 
@@ -43,102 +46,93 @@ fun FileRow(
     onRenameOptionClick: () -> Unit,
     onLockOptionClick: () -> Unit = {}
 ) {
-    val cardShape = RoundedCornerShape(16.dp)
+    val pillShape = RoundedCornerShape(50.dp)
     val expanded = remember { mutableStateOf(false) }
     val isSelected = expanded.value
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(cardShape)
             .combinedClickable(
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                indication = null,
                 onClick = onClick,
                 onLongClick = { expanded.value = true }
             ),
-        // This condition is correct: if expanded is true, color changes instantly
-        color = if (isSelected) Color(0xFF0F6FFC).copy(alpha = 0.3f) else Color(0xFF1A1C21),
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 3.dp,
-        shadowElevation = 3.dp
+        color = if (isSelected) Color(0xFFEBEDF2) else Color.White,
+        shape = pillShape,
+        shadowElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(
-                    start = 12.dp,
-                    top = 10.dp,
-                    bottom = 10.dp
-                ),
-            // Removed redundant .clickable { onClick() } here as Surface handles it
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Recessed circular icon container
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE8EBF0))
+                    .border(
+                        width = 1.dp,
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.1f),
+                                Color.White.copy(alpha = 0.5f)
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                FileThumbnail(
+                    file = entry.file,
+                    modifier = Modifier.fillMaxSize(),
+                    iconSize = 32.dp
+                )
+            }
 
-            // Icon
-//            Icon(
-//                painter = painterResource(id = FileIcons.getIcon(entry.file)),
-//                contentDescription = null,
-//                tint = Color.Unspecified,
-//                modifier = Modifier.size(36.dp)
-//            )
-            FileThumbnail(
-                file = entry.file,
-                modifier = Modifier.size(36.dp),
-                iconSize = 54.dp
-            )
+            Spacer(modifier = Modifier.width(20.dp))
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Name + info (LEFT)
+            // Name + info (Vertically stacked)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-
                 Text(
                     text = entry.file.name.ifEmpty { entry.file.absolutePath },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
-                    maxLines = 1
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
                 val infoText = if (entry.file.isDirectory) {
-                    if (entry.fileCount == 0)
-                        "0 items"
-                    else
-                        "${entry.fileCount} items • ${readableFileSize(entry.totalSize)}"
+                    if (entry.fileCount == 0) "0 items"
+                    else "${entry.fileCount} items"
                 } else {
                     readableFileSize(entry.totalSize)
                 }
 
                 Text(
                     text = infoText,
-                    fontSize = 12.sp,
-                    color = Color(0xFF9AA0A6),
+                    fontSize = 14.sp,
+                    color = Color(0xFF757B84),
                     maxLines = 1
                 )
             }
 
-            // Timestamp (RIGHT)
-            Text(
-                text = formatTimestamp(entry.lastModified),
-                fontSize = 10.sp,
-                color = Color(0xFF9AA0A6)
-            )
-
+            // Three-dot vertical menu icon
             Box {
                 IconButton(
-                    onClick = {
-                        // This single state change triggers both the menu opening
-                        // AND the Surface color change above simultaneously.
-                        expanded.value = true
-                    }
+                    onClick = { expanded.value = true }
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.more_vertical),
                         contentDescription = "Options",
-                        // Optional: Change icon tint when selected too
-                        tint = if (isSelected) Color.White else Color(0xFF9AA0A6),
+                        tint = Color.Gray,
                     )
                 }
 
@@ -165,7 +159,7 @@ fun FileRow(
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PreviewFileRow(){
     FileRow(

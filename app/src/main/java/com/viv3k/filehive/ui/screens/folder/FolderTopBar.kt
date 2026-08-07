@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,7 +31,7 @@ data class MenuItemData(
 fun FolderTopBar(
     title: String,
     onBackClick: () -> Unit,
-    onSearchClick: () -> Unit,
+//    onSearchClick: () -> Unit,
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     onNavigateTo: (String) -> Unit,
@@ -42,44 +40,51 @@ fun FolderTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        IconButton(onClick = onBackClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.arrow_left),
-                contentDescription = null,
-                tint = Color.White
-            )
-        }
+        RoundedIconButton(
+            icon = R.drawable.arrow_left,
+            onClick = onBackClick,
+            backgroundColor = Color.White,
+            iconTint = Color.Black,
+            elevation = 6.dp
+        )
+
+        Spacer(Modifier.width(20.dp))
 
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            color = Color.White,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.ExtraBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
 
-        RoundedIconButton(
-            icon = R.drawable.search,
-            onClick = onSearchClick
-        )
+//        RoundedIconButton(
+//            icon = R.drawable.search,
+//            onClick = onSearchClick,
+//            backgroundColor = Color.White,
+//            iconTint = Color.Black,
+//            elevation = 6.dp
+//        )
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(16.dp))
 
         // Anchor Box
         Box {
             val iconRes = if (expanded) R.drawable.x else R.drawable.more_vertical
-            val bgColor = if (expanded) Color(0xFF3e94a2) else Color(0xFF1A1C21)
+            val bgColor = if (expanded) Color(0xFFEBEDF2) else Color.White
 
             RoundedIconButton(
                 icon = iconRes,
                 onClick = { onExpandChange(!expanded) },
-                backgroundColor = bgColor
+                backgroundColor = bgColor,
+                iconTint = Color.Black,
+                elevation = 6.dp
             )
 
             CustomDropdownMenu(
@@ -92,14 +97,13 @@ fun FolderTopBar(
     }
 }
 
-
 @Composable
 @Preview
 fun previewTopBar(){
     FolderTopBar(
         title = "Internal Storage",
         onBackClick = {},
-        onSearchClick = {},
+//        onSearchClick = {},
         expanded = false,
         onExpandChange = {},
         onNavigateTo = {},

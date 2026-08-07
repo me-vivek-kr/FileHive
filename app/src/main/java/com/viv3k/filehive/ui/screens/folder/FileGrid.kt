@@ -1,21 +1,24 @@
 package com.viv3k.filehive.ui.screens.folder
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +36,8 @@ import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.data.model.FolderModel
 import com.viv3k.filehive.ui.components.FileThumbnail
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
+import com.viv3k.filehive.ui.utils.readableFileSize
+import com.viv3k.filehive.ui.utils.soft
 import java.io.File
 
 @Composable
@@ -43,14 +48,15 @@ fun FileGrid(
     onFileClick: (File) -> Unit,
     onRenameOptionClick: (File) -> Unit,
     onDeleteOptionClick: (File) -> Unit,
+    modifier: Modifier = Modifier,
     onLockOptionClick: (File) -> Unit = {}
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3), // 3 Columns as per image
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        columns = GridCells.Fixed(2), // Redesigned to 2 columns
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 100.dp, top = 16.dp, start = 12.dp, end = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(files) { entry ->
             FileGridItem(
@@ -84,87 +90,98 @@ fun FileGridItem(
     onLockOptionClick: (File) -> Unit = {}
 ){
     val expanded = remember { mutableStateOf(false) }
-    val isSelected = expanded.value
+    val cardShape = RoundedCornerShape(32.dp)
+    val interactionSource = remember { MutableInteractionSource() }
 
-    // Background color logic: Dark Card (Normal) vs Blueish-Grey (Selected)
-    val backgroundColor = if (isSelected) Color(0xFF2B2D31) else Color(0xFF16181D)
-
-    // Anchor box for the dropdown menu
+// Anchor box for the dropdown menu
     Box {
-        Surface(
+        Box(
             modifier = Modifier
-                .aspectRatio(0.85f) // Makes the card slightly taller than wide
-                .clip(RoundedCornerShape(16.dp))
+                .fillMaxWidth()
+                .soft(
+                    shape = cardShape,
+                    backgroundColor = Color.White,
+                    interactionSource = interactionSource
+                )
                 .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
                     onClick = onClick,
                     onLongClick = { expanded.value = true }
-                ),
-            color = backgroundColor,
-            shape = RoundedCornerShape(16.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-//                // Folder/File Icon
-//                Icon(
-//                    painter = painterResource(id = FileIcons.getIcon(entry.file)),
-//                    contentDescription = null,
-//                    tint = Color.Unspecified, // Keep original icon colors
-//                    modifier = Modifier.size(54.dp)
-//                )
-
                 val extension = entry.file.extension.lowercase()
                 val isMedia = extension in listOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "mp4", "mkv", "avi", "mov", "webm")
 
-                if (isMedia) {
-                    // Full Card Preview for Images/Videos
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
+                // Icon recessed container
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF0F2F5)), // Recessed background color
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isMedia) {
                         FileThumbnail(
                             file = entry.file,
-                            modifier = Modifier.fillMaxSize(),
-                            iconSize = 54.dp
+                            modifier = Modifier.fillMaxSize().padding(12.dp).clip(CircleShape),
+                            iconSize = 32.dp
                         )
-                    }
-                } else {
-                    // Standard Icon Size for Folders and Documents
-                    Box(
-                        modifier = Modifier.size(54.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    } else {
                         FileThumbnail(
                             file = entry.file,
-                            modifier = Modifier.fillMaxSize(),
-                            iconSize = 54.dp
+                            modifier = Modifier.size(32.dp),
+                            iconSize = 32.dp
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Name
+                // Bold folder/file name
                 Text(
                     text = entry.file.name,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 16.sp
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Footer row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // "X items" on the left
+                    Text(
+                        text = if (entry.file.isDirectory) "${entry.fileCount} items" else "1 file",
+                        color = Color(0xFF9AA0A6),
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    // "Size" on the right
+                    Text(
+                        text = readableFileSize(entry.totalSize),
+                        color = Color(0xFF9AA0A6),
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.End
+                    )
+                }
             }
         }
 
-        // Dropdown Menu (Hidden until long-press)
+        // Dropdown Menu
         FileOptionsDropdownMenu(
             expanded = expanded.value,
             onDismissRequest = { expanded.value = false },
@@ -174,7 +191,7 @@ fun FileGridItem(
                 expanded.value = false
                 onDeleteOptionClick(entry.file)
             },
-            onRenameClick = { // Add this
+            onRenameClick = {
                 expanded.value = false
                 onRenameOptionClick(entry.file)
             },
@@ -187,12 +204,16 @@ fun FileGridItem(
 }
 
 @Composable
-@Preview(showBackground = true, backgroundColor = 0xFF0F1115) // Added dark background
+@Preview(showBackground = true, backgroundColor = 0xFFF5F7FB)
 fun PreviewGrid() {
-    // Create some mock data to visualize the grid
-    val mockFolder = FolderModel(File("/storage/emulated/0/Music"), 5, 1024, System.currentTimeMillis())
+// Create some mock data to visualize the grid
     val mockFiles = List(9) { index ->
-        FolderModel(File("/storage/emulated/0/Folder $index"), 0, 0, System.currentTimeMillis())
+        FolderModel(
+            file = File("/storage/emulated/0/Folder $index"),
+            fileCount = index * 12,
+            totalSize = index * 1024L * 1024L,
+            lastModified = System.currentTimeMillis()
+        )
     }
 
     FileGrid(
@@ -207,7 +228,7 @@ fun PreviewGrid() {
 }
 
 @Composable
-@Preview(showBackground = true, backgroundColor = 0xFF0F1115)
+@Preview(showBackground = true, backgroundColor = 0xFFF5F7FB)
 fun PreviewGridItem() {
     Box(modifier = Modifier.padding(16.dp)) { // Add padding to see it clearly
         FileGridItem(

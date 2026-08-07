@@ -1,26 +1,33 @@
 package com.viv3k.filehive.ui.screens.folder
 
-import android.os.Build
 import android.widget.Toast
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,11 +39,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,8 +58,10 @@ import com.viv3k.filehive.data.model.FolderUiState
 import com.viv3k.filehive.data.model.FolderViewModel
 import com.viv3k.filehive.ui.components.BreadcrumbNavigation
 import com.viv3k.filehive.ui.components.LoadingListShimmer
+import com.viv3k.filehive.ui.components.NeomorphicBottomNav
 import com.viv3k.filehive.ui.screens.utils.DeleteConfirmationDialog
 import com.viv3k.filehive.ui.screens.utils.NameInputDialog
+import com.viv3k.filehive.ui.utils.soft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -75,35 +85,25 @@ fun FolderScreen(
     val repository = remember { FolderCacheRepository(db.folderCacheDao()) }
     val scope = rememberCoroutineScope()
 
-    //Folder View-Mode from DB
-    var isGrid by remember { mutableStateOf(false) }
+    var isGrid by remember { mutableStateOf(true) }
     var exists by remember { mutableStateOf(true) }
     var menuExpanded by remember { mutableStateOf(false) }
 
-    //Add State for the Dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
     var fileToDelete by remember { mutableStateOf<File?>(null) }
 
-    // New Creation Dialog States
     var showCreateOptionsDialog by remember { mutableStateOf(false) }
     var showNameInputDialog by remember { mutableStateOf(false) }
-    var isCreatingFolder by remember { mutableStateOf(true) } // true = folder, false = file
+    var isCreatingFolder by remember { mutableStateOf(true) }
 
-    // Rename File/Folder
     var showRenameDialog by remember { mutableStateOf(false) }
     var fileToRename by remember { mutableStateOf<File?>(null) }
 
-
-    // Collect refresh trigger
     val refreshTrigger by viewModel.refreshTrigger.collectAsState()
-
-
-    // Collect UI state from ViewModel
     val uiState by viewModel.state.collectAsState()
 
     var loading = uiState is FolderUiState.Loading
 
-    // Instead, derive the list from uiState
     val children = when(val state = uiState) {
         is FolderUiState.Loaded -> state.files
         else -> emptyList()
@@ -145,12 +145,10 @@ fun FolderScreen(
         )
     }
 
-
     LaunchedEffect(folderPath, previewData) {
         viewModel.loadFolder(File(folderPath),previewData)
     }
 
-    //Load saved View-Mode from DB when folderPath changes
     LaunchedEffect(folderPath) {
         val normalizedPath = folderPath.trimEnd('/')
         val cache = withContext(Dispatchers.IO) {
@@ -161,7 +159,6 @@ fun FolderScreen(
         }
     }
 
-    //Load Files List (Using Repo Cache Stats)
     LaunchedEffect(folderPath, refreshTrigger) {
         if (previewData != null) return@LaunchedEffect
 
@@ -190,33 +187,33 @@ fun FolderScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F1115))
+            .background(Color(0xFFF7F9FB))
             .statusBarsPadding()
-            .padding(horizontal = 16.dp)
     ) {
         val displayTitle = remember(folderPath) {
             if (folderPath == "/storage/emulated/0") "Internal Storage"
             else File(folderPath).name
         }
-        FolderTopBar(
-            title = displayTitle,
-            onBackClick = onBackClick,
-            onSearchClick = onSearchClick,
-            expanded = menuExpanded,
-            onExpandChange = { menuExpanded = it },
-            onNavigateTo = { route ->
-                when (route) {
-                    "recycle_bin" -> onRecycleBinClick()
-                    "home" -> onHomeClick()
+
+        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            FolderTopBar(
+                title = displayTitle,
+                onBackClick = onBackClick,
+//                onSearchClick = onSearchClick,
+                expanded = menuExpanded,
+                onExpandChange = { menuExpanded = it },
+                onNavigateTo = { route ->
+                    when (route) {
+                        "recycle_bin" -> onRecycleBinClick()
+                        "home" -> onHomeClick()
+                    }
+                },
+                onNewClick = {
+                    showCreateOptionsDialog = true
+                    menuExpanded = false
                 }
-                // handle other
-            },
-            onNewClick = {
-                // Open the Selection Dialog
-                showCreateOptionsDialog = true
-                menuExpanded = false
-            }
-        )
+            )
+        }
 
         Box(
             modifier = Modifier
@@ -231,61 +228,45 @@ fun FolderScreen(
                 }
         ) {
             Column {
-                //PATH Text + View Mode Toggle
-                Row(
+                // Breadcrumbs on one line - Edge to Edge scroll
+                BreadcrumbNavigation(
+                    folderPath = folderPath,
+                    onPathClick = { clickedPath ->
+                        onFolderClick(clickedPath)
+                    },
+                    onHomeClick = onHomeClick
+                )
+
+                // View Switcher and Filter on a separate line, scrollable and aligned to the right
+                LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp),
+                        .padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically,
+                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp) // Space for shadows
                 ) {
-//                    Text(
-//                        text = folderPath,
-//                        fontSize = 12.sp,
-//                        color = Color(0xFF9AA0A6)
-//                    )
-                    Box(modifier = Modifier.weight(1f)) {
-                        BreadcrumbNavigation(
-                            folderPath = folderPath,
-                            onPathClick = { clickedPath ->
-                                onFolderClick(clickedPath)
+                    item {
+                        NeomorphicViewSwitcher(
+                            isGrid = isGrid,
+                            onToggle = { grid ->
+                                isGrid = grid
+                                scope.launch {
+                                    repository.setViewMode(folderPath.trimEnd('/'), grid)
+                                }
                             }
                         )
                     }
 
-                    IconButton(onClick = {
-                        isGrid = false
-                        scope.launch {
-                            // Ensure consistency
-                            repository.setViewMode(folderPath.trimEnd('/'), false)
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.list),
-                            contentDescription = "List",
-                            tint = if (!isGrid) colorResource(id = R.color.green) else Color(0xFF9AA0A6),
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(2.dp))
-
-                    IconButton(onClick = {
-                        isGrid = true
-                        scope.launch {
-                            repository.setViewMode(folderPath.trimEnd('/'), true)
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.grid),
-                            contentDescription = "Grid",
-                            tint = if (isGrid) Color.White else Color(0xFF9AA0A6),
-                            modifier = Modifier.size(18.dp)
-                        )
+                    item {
+                        NeomorphicFilterButton(onClick = {
+                            Toast.makeText(context, "Filter clicked", Toast.LENGTH_SHORT).show()
+                        })
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+//                Spacer(modifier = Modifier.height(16.dp))
 
-                //Content State Handle
                 when {
                     loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                         LoadingListShimmer()
@@ -304,16 +285,15 @@ fun FolderScreen(
                             FileGrid(
                                 files = children,
                                 onFolderClick = onFolderClick,
-                                // Pass the image click logic to Grid as well
                                 onImageClick = onImageClick,
                                 onFileClick = { file ->
                                     FileOpener.openFile(context, file)
                                 },
-                                onRenameOptionClick = { file -> // Add this
+                                onRenameOptionClick = { file ->
                                     fileToRename = file
                                     showRenameDialog = true
                                 },
-                                onDeleteOptionClick = { file -> // Add this
+                                onDeleteOptionClick = { file ->
                                     fileToDelete = file
                                     showDeleteDialog = true
                                 },
@@ -324,15 +304,14 @@ fun FolderScreen(
                             )
                         } else {
                             LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
                             ) {
-                                // Add key to items for animation to work
                                 items(
                                     items = children,
                                     key = { it.file.absolutePath }
                                 ) { entry ->
-
                                     Box(modifier = Modifier.animateItem()) {
                                         FileRow(
                                             entry = entry,
@@ -363,90 +342,105 @@ fun FolderScreen(
                                         )
                                     }
                                 }
-                                item {
-                                    Spacer(modifier = Modifier.height(30.dp))
-                                }
-                            }
-
-                            if (showDeleteDialog && fileToDelete != null) {
-                                DeleteConfirmationDialog(
-                                    fileName = fileToDelete!!.name,
-                                    onDismiss = {
-                                        showDeleteDialog = false
-                                        fileToDelete = null
-                                    },
-                                    onConfirm = { isPermanent ->
-                                        viewModel.deleteFile(fileToDelete!!, isPermanent)
-                                        showDeleteDialog = false
-                                        fileToDelete = null
-                                    }
-                                )
-                            }
-
-                            //Create Option Dialog
-                            if(showCreateOptionsDialog){
-                                NewFileFolderDialog(
-                                    onDismissRequest = {
-                                        showCreateOptionsDialog = false
-                                    },
-                                    onNewFileClick = {
-                                        isCreatingFolder = false
-                                        showCreateOptionsDialog = false
-                                        showNameInputDialog = true
-                                    },
-                                    onNewFolderClick = {
-                                        isCreatingFolder = true
-                                        showCreateOptionsDialog = false
-                                        showNameInputDialog = true
-                                    }
-                                )
-                            }
-
-                            //Name Input Dialog
-                            if (showNameInputDialog) {
-                                NameInputDialog(
-                                    isCreatingFolder = isCreatingFolder,
-                                    onDismiss = { showNameInputDialog = false },
-                                    onConfirm = { name ->
-                                        if (name.isNotBlank()) {
-                                            // Ensure we use the exact folderPath currently viewed
-                                            val parent = File(folderPath)
-                                            val newFile = File(parent, name)
-
-                                            scope.launch(Dispatchers.IO) {
-                                                try {
-                                                    // Use mkdir() for single folder creation, createNewFile() for files
-                                                    val success = if (isCreatingFolder) {
-                                                        newFile.mkdir()
-                                                    } else {
-                                                        newFile.createNewFile()
-                                                    }
-
-                                                    withContext(Dispatchers.Main) {
-                                                        if (success) {
-                                                            // Important: Refresh logic
-                                                            viewModel.onFileOperationCompleted(parent)
-                                                            showNameInputDialog = false
-                                                            Toast.makeText(context, "Created successfully", Toast.LENGTH_SHORT).show()
-                                                        } else {
-                                                            Toast.makeText(context, "Failed: Path already exists or Access Denied", Toast.LENGTH_SHORT).show()
-                                                        }
-                                                    }
-                                                } catch (e: Exception) {
-                                                    withContext(Dispatchers.Main) {
-                                                        Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
                             }
                         }
                     }
                 }
             }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 120.dp, end = 16.dp)
+            ) {
+                NeomorphicFAB(onClick = {
+                    showCreateOptionsDialog = true
+                })
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp)
+            ) {
+                NeomorphicBottomNav(
+                    activeTab = "files",
+                    onTabClick = { tab ->
+                        // Handle navigation if needed
+                    }
+                )
+            }
         }
+    }
+
+    if (showDeleteDialog && fileToDelete != null) {
+        DeleteConfirmationDialog(
+            fileName = fileToDelete!!.name,
+            onDismiss = {
+                showDeleteDialog = false
+                fileToDelete = null
+            },
+            onConfirm = { isPermanent ->
+                viewModel.deleteFile(fileToDelete!!, isPermanent)
+                showDeleteDialog = false
+                fileToDelete = null
+            }
+        )
+    }
+
+    if(showCreateOptionsDialog){
+        NewFileFolderDialog(
+            onDismissRequest = {
+                showCreateOptionsDialog = false
+            },
+            onNewFileClick = {
+                isCreatingFolder = false
+                showCreateOptionsDialog = false
+                showNameInputDialog = true
+            },
+            onNewFolderClick = {
+                isCreatingFolder = true
+                showCreateOptionsDialog = false
+                showNameInputDialog = true
+            }
+        )
+    }
+
+    if (showNameInputDialog) {
+        NameInputDialog(
+            isCreatingFolder = isCreatingFolder,
+            onDismiss = { showNameInputDialog = false },
+            onConfirm = { name ->
+                if (name.isNotBlank()) {
+                    val parent = File(folderPath)
+                    val newFile = File(parent, name)
+
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            val success = if (isCreatingFolder) {
+                                newFile.mkdir()
+                            } else {
+                                newFile.createNewFile()
+                            }
+
+                            withContext(Dispatchers.Main) {
+                                if (success) {
+                                    viewModel.onFileOperationCompleted(parent)
+                                    showNameInputDialog = false
+                                    Toast.makeText(context, "Created successfully", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Failed: Path already exists or Access Denied", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            }
+        )
     }
 
     if (menuExpanded) {
@@ -459,6 +453,107 @@ fun FolderScreen(
     }
 }
 
+@Composable
+fun NeomorphicViewSwitcher(
+    isGrid: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val offset by animateDpAsState(targetValue = if (isGrid) 0.dp else 40.dp, label = "switcher")
+
+    Box(
+        modifier = Modifier
+            .width(88.dp)
+            .height(42.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFFE8EBF0))
+            .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = offset)
+                .size(40.dp)
+                .shadow(elevation = 2.dp, shape = CircleShape)
+                .background(Color.White, CircleShape)
+        )
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onToggle(true) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.grid),
+                    contentDescription = "Grid",
+                    tint = if (isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onToggle(false) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.list),
+                    contentDescription = "List",
+                    tint = if (!isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NeomorphicFilterButton(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = Modifier.height(42.dp).width(42.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(id = R.drawable.settings), // Replace with filter icon if available
+                contentDescription = "Filter",
+                tint = Color(0xFF5051D8),
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun NeomorphicFAB(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.soft()
+            .size(56.dp)
+            .shadow(elevation = 8.dp, shape = CircleShape)
+            .background(Color.White, CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.plus),
+            contentDescription = "Add",
+            tint = Color(0xFF5051D8),
+            modifier = Modifier.size(28.dp)
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -467,11 +562,9 @@ fun FolderScreenPreview() {
         FolderModel(File("/storage/emulated/0"), 5, 1024000, System.currentTimeMillis()),
         FolderModel(File("/storage/emulated/0"), 12, 5242880, System.currentTimeMillis()),
         FolderModel(File("/storage/emulated/0/Pictures"), 25, 10485760, System.currentTimeMillis()),
-        // Add a mock file to see how it renders
         FolderModel(File("/storage/emulated/0/report.pdf"), 0, 85000, System.currentTimeMillis() - 86400000)
     )
 
-    // Call FolderScreen and pass the mock data to the previewData parameter
     FolderScreen(
         folderPath = "/storage/emulated/0",
         onBackClick = {},

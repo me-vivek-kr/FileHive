@@ -33,20 +33,20 @@ import androidx.compose.runtime.getValue
 import com.viv3k.filehive.ui.utils.PlayInsetIcon
 import java.io.File
 
-
 @Composable
 fun FileThumbnail(
     file: File,
     modifier: Modifier = Modifier,
     iconSize: Dp = 36.dp,
-    displayName: String? = null
+    displayName: String? = null,
+//    tint: Color?
 ) {
     val context = LocalContext.current
     val nameToCheck = displayName ?: file.name
 //    val extension = file.extension.lowercase()
     val extension = nameToCheck.substringAfterLast('.', "").lowercase()
 
-    // Check if it's a visual media file we can load
+// Check if it's a visual media file we can load
     val isImage = extension in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif", "svg", "ico", "dng", "raw", "nef", "cr2")
     val isVideo = extension in listOf("mp4", "mkv", "mov", "avi", "wmv", "flv", "webm", "3gp", "mpeg", "mpg", "ts", "m4v")
     val isAudio = extension in listOf("mp3", "m4a", "aac", "flac", "ogg", "wav", "opus")

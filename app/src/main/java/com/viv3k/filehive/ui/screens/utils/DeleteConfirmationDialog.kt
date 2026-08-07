@@ -38,24 +38,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
-
 @Composable
 fun DeleteConfirmationDialog(
     fileName: String,
     onDismiss: () -> Unit,
     onConfirm: (isPermanent: Boolean) -> Unit,
 ) {
-    // State to track if "Permanently delete" is checked
+// State to track if "Permanently delete" is checked
     var isPermanentDelete by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color(0xFF16181D), // Dark Dialog Background
-            modifier = Modifier.fillMaxWidth()
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp
         ) {
             Column(
-                modifier = Modifier.padding(18.dp)
+                modifier = Modifier.padding(20.dp)
             ) {
                 // Header Row (Icon + Title)
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -64,13 +64,13 @@ fun DeleteConfirmationDialog(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF2B1C1C)), // Dark Red bg
+                            .background(Color(0xFFFFEBEE)), // Light Red bg
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Delete,
                             contentDescription = null,
-                            tint = Color(0xFFEF5350), // Red Tint
+                            tint = Color(0xFFD32F2F), // Darker Red Tint
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -80,35 +80,35 @@ fun DeleteConfirmationDialog(
                     Column {
                         Text(
                             text = "Delete Item?",
-                            color = Color.White,
+                            color = Color.Black,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = if (isPermanentDelete) "Action cannot be undone" else "Move to Recycle Bin",
-                            color = Color(0xFF9AA0A6),
+                            color = Color(0xFF757B84),
                             fontSize = 12.sp
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Body Message
                 Text(
                     text = "Are you sure you want to delete \"$fileName\"?",
-                    color = Color(0xFFB0B3B8),
+                    color = Color.Black,
                     fontSize = 14.sp
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Permanent Delete Option Checkbox
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable { isPermanentDelete = !isPermanentDelete }
                         .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -117,20 +117,20 @@ fun DeleteConfirmationDialog(
                         checked = isPermanentDelete,
                         onCheckedChange = { isPermanentDelete = it },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFFEF5350),
-                            uncheckedColor = Color(0xFF9AA0A6),
+                            checkedColor = Color(0xFFD32F2F),
+                            uncheckedColor = Color(0xFFBCC1C8),
                             checkmarkColor = Color.White
                         )
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Permanently delete",
-                        color = Color.White,
+                        color = Color.Black,
                         fontSize = 14.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Buttons
                 Row(
@@ -141,10 +141,10 @@ fun DeleteConfirmationDialog(
                     Button(
                         onClick = onDismiss,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2B2D31),
-                            contentColor = Color.White
+                            containerColor = Color(0xFFF0F2F5),
+                            contentColor = Color.Black
                         ),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)
@@ -156,11 +156,10 @@ fun DeleteConfirmationDialog(
                     Button(
                         onClick = { onConfirm(isPermanentDelete) },
                         colors = ButtonDefaults.buttonColors(
-                            // Change color based on severity (Red for permanent, Blue/Primary for recycle)
-                            containerColor = if (isPermanentDelete) Color(0xFFD32F2F) else Color(0xFF29B6F6),
+                            containerColor = if (isPermanentDelete) Color(0xFFD32F2F) else Color(0xFF5051D8),
                             contentColor = Color.White
                         ),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .weight(1f)
                             .height(48.dp)

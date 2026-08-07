@@ -59,8 +59,8 @@ fun NameInputDialog(
             // Main Dialog Content
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = Color(0xFF16181D),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1A1C21))
+                color = Color.White,
+                shadowElevation = 8.dp
             ) {
                 Column(
                     modifier = Modifier
@@ -68,16 +68,10 @@ fun NameInputDialog(
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-//                    Text(
-//                        text = if (isCreatingFolder) "Create New Folder" else "Create New File",
-//                        color = Color.White,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold
-//                    )
                     Text(
                         // If custom title provided use it, otherwise use default
                         text = title ?: if (isCreatingFolder) "Create New Folder" else "Create New File",
-                        color = Color.White,
+                        color = Color.Black,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -88,19 +82,19 @@ fun NameInputDialog(
                         value = text,
                         onValueChange = { text = it },
                         placeholder = {
-                            Text("Enter folder name...",
+                            Text("Enter name...",
                                 color = Color.Gray,
                                 fontSize = 12.sp
                             ) },
                         modifier = Modifier.fillMaxWidth()
-                            .height(50.dp),
+                            .height(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF3F5955),
-                            unfocusedBorderColor = Color(0xFF3A3A3A),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color(0xFF3F5955)
+                            focusedBorderColor = Color(0xFF5051D8),
+                            unfocusedBorderColor = Color(0xFFE0E5EC),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color(0xFF5051D8)
                         ),
                         singleLine = true
                     )
@@ -115,23 +109,23 @@ fun NameInputDialog(
                             onClick = onDismiss,
                             modifier = Modifier
                                 .weight(1f)
-                                .height(40.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF424242)),
-                            shape = RoundedCornerShape(25.dp)
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF0F2F5)),
+                            shape = RoundedCornerShape(24.dp)
                         ) {
                             Text("Cancel",
-                                color = Color.White
+                                color = Color.Black
                             )
                         }
 
-                        // Create Button with Gradient-like color
+                        // Create Button
                         Button(
                             onClick = { if (text.isNotBlank()) onConfirm(text) },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(40.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B)),
-                            shape = RoundedCornerShape(25.dp)
+                                .height(48.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5051D8)),
+                            shape = RoundedCornerShape(24.dp)
                         ) {
                             Text(if (title != null) "Rename" else "Create", color = Color.White)
                         }
@@ -146,11 +140,11 @@ fun NameInputDialog(
                     .size(80.dp)
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(Color(0xFF26A69A), Color(0xFF00695C))
+                            colors = listOf(Color(0xFF6C63FF), Color(0xFF5051D8))
                         ),
                         shape = CircleShape
                     )
-                    .border(4.dp, Color(0xFF1E1E1E), CircleShape), // Thick border to match background
+                    .border(4.dp, Color.White, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

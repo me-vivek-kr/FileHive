@@ -32,57 +32,58 @@ fun NewFileFolderDialog(
     onNewFileClick: () -> Unit,
     onNewFolderClick: () -> Unit
 ){
-    
+
     Dialog(onDismissRequest = onDismissRequest){
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color(0xFF16181D), // Dark Dialog Background
-            modifier = Modifier.fillMaxWidth()
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp
         ) {
             Column(
-                modifier = Modifier.padding(18.dp)
+                modifier = Modifier.padding(20.dp)
             ){
                 Text(
                     "New",
-                    color = Color.White,
+                    color = Color.Black,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 //New File Option
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(12.dp))
                         .clickable {
                             onNewFileClick()
                         }
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ){
-                    Icon(painter = painterResource(id = R.drawable.file_add), contentDescription = null, tint = Color.Gray, modifier = Modifier.size(24.dp))
+                    Icon(painter = painterResource(id = R.drawable.file_add), contentDescription = null, tint = Color(0xFF9AA0A6), modifier = Modifier.size(24.dp))
                     Spacer(Modifier.width(16.dp))
-                    Text("File", color = Color.White)
+                    Text("File", color = Color.Black, fontWeight = FontWeight.Medium)
                 }
 
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(12.dp))
                         .clickable {
                             onNewFolderClick()
                         }
                         .padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painter = painterResource(id = R.drawable.folder_plus), contentDescription = null, tint = Color.Yellow, modifier = Modifier.size(24.dp))
+                    Icon(painter = painterResource(id = R.drawable.folder_plus), contentDescription = null, tint = Color(0xFF5051D8), modifier = Modifier.size(24.dp))
                     Spacer(Modifier.width(16.dp))
-                    Text("Folder", color = Color.White)
+                    Text("Folder", color = Color.Black, fontWeight = FontWeight.Medium)
                 }
             }
         }

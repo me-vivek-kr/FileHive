@@ -1,37 +1,46 @@
 package com.viv3k.filehive.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.R
+import java.util.Locale
 
 @Composable
 fun BreadcrumbNavigation(
     folderPath: String,
-    onPathClick: (String) -> Unit
-){
-    // Define the actual system paths
+    onPathClick: (String) -> Unit,
+    onHomeClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+// Define the actual system paths
     val internalRootPath = "/storage/emulated/0"
     val storageBase = "/storage/"
 
@@ -76,8 +85,10 @@ fun BreadcrumbNavigation(
                 val parts = folderPath.trim('/').split('/')
                 var currentPath = ""
                 parts.forEach { part ->
-                    currentPath += "/$part"
-                    segments.add(part.uppercase() to currentPath)
+                    if (part.isNotEmpty()) {
+                        currentPath += "/$part"
+                        segments.add(part.uppercase() to currentPath)
+                    }
                 }
             }
         }
@@ -87,41 +98,123 @@ fun BreadcrumbNavigation(
     val listState = rememberLazyListState()
 
     LaunchedEffect(pathSegments.size) {
-        if(pathSegments.isNotEmpty()){
-            listState.animateScrollToItem(pathSegments.size - 1)
+        if (pathSegments.isNotEmpty()) {
+            listState.animateScrollToItem(pathSegments.size)
         }
     }
 
     LazyRow(
         state = listState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        // Home Button
+        item {
+            Surface(
+                modifier = Modifier.size(38.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = Color.White,
+                shadowElevation = 2.dp,
+                onClick = onHomeClick
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.home),
+                        contentDescription = "Home",
+                        tint = Color(0xFF45494F),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+
+        if (pathSegments.isNotEmpty()) {
+            item {
+                Icon(
+                    painter = painterResource(id = R.drawable.chevron_right),
+                    contentDescription = null,
+                    tint = Color(0xFFBCC1C8),
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+        }
+
         itemsIndexed(pathSegments) { index, segment ->
             val isLast = index == pathSegments.size - 1
+            val name = segment.first.lowercase(Locale.ROOT)
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = segment.first,
-                    fontSize = 12.sp, // Slightly smaller to match your image
-                    fontWeight = if (isLast) FontWeight.Bold else FontWeight.Medium,
-                    // Use your theme teal color for the active folder, gray for others
-                    color = if (isLast) Color(0xFF3e94a2) else Color(0xFF9AA0A6),
-                    modifier = Modifier.clickable {
-                        if (!isLast) onPathClick(segment.second)
+                if (isLast) {
+                    // Active segment (last): Recessed pill with blue text
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFFDDE1E7),
+                                        Color(0xFFEBEDF2)
+                                    )
+                                )
+                            )
+                            .border(
+                                width = 1.dp,
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.2f),
+                                        Color.White.copy(alpha = 0.9f)
+                                    )
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = name,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF5051D8),
+                            maxLines = 1,
+                            softWrap = false
+                        )
                     }
-                )
+                } else {
+                    // Inactive segments: Elevated white pill
+                    Surface(
+                        onClick = { onPathClick(segment.second) },
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.height(42.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = name,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF45494F),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
+                }
 
                 if (!isLast) {
-                    Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         painter = painterResource(id = R.drawable.chevron_right),
                         contentDescription = null,
-                        tint = Color(0xFF45494F),
-                        modifier = Modifier.size(10.dp)
+                        tint = Color(0xFFBCC1C8),
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .size(12.dp)
                     )
                 }
             }
@@ -129,12 +222,12 @@ fun BreadcrumbNavigation(
     }
 }
 
-@Preview
+@Preview(showBackground = true, backgroundColor = 0xFFF0F2F5)
 @Composable
-fun PreviewBreadcrumbNavigation(){
-    val path = "Internal/Download/New Folder/0"
+fun PreviewBreadcrumbNavigation() {
     BreadcrumbNavigation(
-        folderPath = path,
-        onPathClick = {}
+        folderPath = "/storage/emulated/0/Download",
+        onPathClick = {},
+        onHomeClick = {}
     )
 }
