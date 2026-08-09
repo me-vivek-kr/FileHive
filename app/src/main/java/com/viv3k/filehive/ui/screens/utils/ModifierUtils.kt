@@ -1,7 +1,9 @@
 package com.viv3k.filehive.ui.utils
 
 import android.graphics.Paint
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -9,7 +11,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -181,4 +187,69 @@ fun Modifier.softClickable(
         )
 
 
+}
+
+@Composable
+fun NeomorphicIcon(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color(0xFFF4F6FA),
+    size: Dp = 40.dp,
+    icon: @Composable () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .soft(
+                shape = RoundedCornerShape(12.dp),
+                cornerRadius = 12.dp,
+                blurRadius = 8.dp,
+                offsetY = 4.dp,
+                backgroundColor = backgroundColor
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        icon()
+    }
+}
+
+@Composable
+fun NeomorphicSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val trackColor by animateColorAsState(
+        targetValue = if (checked) Color(0xFF2D3282) else Color(0xFFD1D9E6),
+        label = "trackColor"
+    )
+    val thumbOffset by animateDpAsState(
+        targetValue = if (checked) 22.dp else 0.dp,
+        label = "thumbOffset"
+    )
+
+    Box(
+        modifier = modifier
+            .width(50.dp)
+            .height(28.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(trackColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onCheckedChange(!checked) }
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = thumbOffset)
+                .size(20.dp)
+                .soft(
+                    shape = RoundedCornerShape(50),
+                    cornerRadius = 10.dp,
+                    blurRadius = 4.dp,
+                    offsetY = 2.dp,
+                    backgroundColor = Color.White
+                )
+        )
+    }
 }

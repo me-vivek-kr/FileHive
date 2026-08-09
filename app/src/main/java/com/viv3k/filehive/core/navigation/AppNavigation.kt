@@ -23,6 +23,7 @@ import com.viv3k.filehive.ui.screens.homescreen.HomeScreen
 import com.viv3k.filehive.ui.screens.SplashScreen
 import com.viv3k.filehive.ui.screens.recyclebin.RecycleBinScreen
 import com.viv3k.filehive.ui.screens.search.SearchScreen
+import com.viv3k.filehive.ui.screens.settings.SettingsScreen
 import com.viv3k.filehive.ui.screens.vault.LockAuthScreen
 import com.viv3k.filehive.ui.screens.vault.VaultScreen
 import com.viv3k.filehive.ui.screens.viewer.ImageViewerScreen
@@ -48,7 +49,9 @@ fun AppNavigation() {
                 },
                 onFolderClick = { },
                 onRecycleBinClick = { navController.navigate(Screen.RecycleBin) },
-                onLockedClick = { navController.navigate(Screen.LockAuth) }
+                onLockedClick = { navController.navigate(Screen.LockAuth) },
+                onSearchClick = { navController.navigate(Screen.Search) },
+                onSettingsClick = { navController.navigate(Screen.Settings) }
             )
         }
 
@@ -84,13 +87,28 @@ fun AppNavigation() {
                         popUpTo<Screen.Home> { inclusive = false }
                         launchSingleTop = true
                     }
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings)
                 }
             )
         }
 
         composable<Screen.Search> {
             SearchScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onHomeClick = {
+                    navController.navigate(Screen.Home) {
+                        popUpTo<Screen.Home> { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onFilesClick = {
+                    navController.navigate(Screen.Folder(path = "/storage/emulated/0"))
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.Settings)
+                }
             )
         }
 
@@ -138,6 +156,15 @@ fun AppNavigation() {
         ) {
             VaultScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable<Screen.Settings> {
+            SettingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onStorageAnalyzerClick = { /* TODO */ },
+                onRecycleBinClick = { navController.navigate(Screen.RecycleBin) },
+                onVaultClick = { navController.navigate(Screen.LockAuth) }
             )
         }
     }

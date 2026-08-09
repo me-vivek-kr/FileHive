@@ -78,6 +78,7 @@ fun FolderScreen(
     onSearchClick: () -> Unit,
     previewData: List<FolderModel>? = null,
     onRecycleBinClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: FolderViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -366,7 +367,12 @@ fun FolderScreen(
                 NeomorphicBottomNav(
                     activeTab = "files",
                     onTabClick = { tab ->
-                        // Handle navigation if needed
+                        when (tab) {
+                            "home" -> onHomeClick()
+                            "settings" -> onSettingsClick()
+                            "search" -> onSearchClick()
+                            "files" -> { /* Already here */ }
+                        }
                     }
                 )
             }
@@ -572,6 +578,7 @@ fun FolderScreenPreview() {
         onSearchClick = {},
         previewData = mockFolders,
         onRecycleBinClick = {},
+        onSettingsClick = {},
         onHomeClick = {},
         onImageClick = {},
     )

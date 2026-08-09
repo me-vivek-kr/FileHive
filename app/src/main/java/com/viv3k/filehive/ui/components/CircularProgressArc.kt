@@ -129,7 +129,7 @@ fun CircularProgressArc(
 
         if (animatedProgress.value > 0f) {
             val gradientBrush = Brush.sweepGradient(
-                colors = listOf(Color(0xFF0C0F15), Color(0xFF3e94a2)),
+                colors = listOf(Color(0xFFFDFDFD), Color(0xFF5051D8)),
                 center = center
             )
 
@@ -154,8 +154,8 @@ fun CircularProgressArc(
             )
 
             // Draw the knob (Outer ring + Inner circle)
-            drawCircle(Color(0xFF171717), strokePx * 1.4f, knobPos)
-            drawCircle(Color(0xFF449da8), strokePx * 0.7f, knobPos)
+            drawCircle(Color(0xFFFDFDFD), strokePx * 1.4f, knobPos)
+            drawCircle(Color(0xFF5051D8), strokePx * 0.7f, knobPos)
 
         }
     }

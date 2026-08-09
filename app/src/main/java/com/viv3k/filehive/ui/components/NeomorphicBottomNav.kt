@@ -27,67 +27,63 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.viv3k.filehive.R
 
+import com.viv3k.filehive.ui.utils.soft
+import com.viv3k.filehive.ui.utils.softCardShadow
+
 @Composable
 fun NeomorphicBottomNav(
     activeTab: String = "home",
     onTabClick: (String) -> Unit = {}
 ) {
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(40.dp),
-        color = Color(0xFFF0F2F5),
-        shadowElevation = 6.dp
+            .padding(16.dp)
+            .soft(
+                shape = RoundedCornerShape(40.dp),
+                cornerRadius = 40.dp,
+                backgroundColor = Color.White
+            )
     ) {
         Row(
             modifier = Modifier
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(vertical = 8.dp, horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val tabs = listOf(
-                "home" to (R.drawable.home to "Home"),
-                "files" to (R.drawable.file to "Files"),
-                "search" to (R.drawable.search to "Search"),
-                "settings" to (R.drawable.settings to "Settings")
+                "home" to R.drawable.home,
+                "files" to R.drawable.file,
+                "search" to R.drawable.search,
+                "settings" to R.drawable.settings
             )
 
-            tabs.forEach { (id, data) ->
-                val (iconRes, label) = data
+            tabs.forEach { (id, iconRes) ->
                 val isActive = activeTab == id
 
-                Column(
+                Box(
                     modifier = Modifier
                         .weight(1f)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) { onTabClick(id) },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    contentAlignment = Alignment.Center
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
+                            .size(48.dp)
                             .clip(CircleShape)
-                            .background(if (isActive) Color(0xFF5051D8) else Color.Transparent),
+                            .background(if (isActive) Color(0xFF6366F1) else Color.Transparent),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             painter = painterResource(id = iconRes),
-                            contentDescription = label,
+                            contentDescription = null,
                             tint = if (isActive) Color.White else Color(0xFF9BA3AF),
-                            modifier = Modifier.size(26.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
-
-//                    Text(
-//                        text = label,
-//                        color = if (isActive) Color(0xFF5051D8) else Color(0xFF9BA3AF),
-//                        style = MaterialTheme.typography.labelSmall,
-//                        modifier = Modifier.padding(top = 4.dp)
-//                    )
                 }
             }
         }

@@ -11,6 +11,7 @@ sealed interface Screen {
     @Serializable data object RecycleBin : Screen
     @Serializable data object LockAuth : Screen
     @Serializable data object Vault : Screen
+    @Serializable data object Settings : Screen
 
     @Serializable
     data class Folder(val path: String) : Screen

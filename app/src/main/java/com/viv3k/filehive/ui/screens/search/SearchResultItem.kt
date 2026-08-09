@@ -1,6 +1,8 @@
 package com.viv3k.filehive.ui.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -30,10 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.R
 import com.viv3k.filehive.data.common.FileOpener
-import com.viv3k.filehive.ui.components.FileThumbnail
+import com.viv3k.filehive.ui.components.FileIcons
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
-import com.viv3k.filehive.ui.utils.formatTimestamp
 import com.viv3k.filehive.ui.utils.readableFileSize
+import com.viv3k.filehive.ui.utils.soft
 
 @Composable
 fun SearchResultItem(
@@ -43,80 +45,89 @@ fun SearchResultItem(
     val context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     val isSelected = expanded.value
-    val cardShape = RoundedCornerShape(16.dp)
+    val cardShape = RoundedCornerShape(24.dp)
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(cardShape)
+            .soft(
+                shape = cardShape,
+                cornerRadius = 24.dp,
+                backgroundColor = if (isSelected) Color(0xFFEEF2FF) else Color.White,
+                blurRadius = 14.dp,
+                offsetY = 6.dp
+            )
             .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
                 onClick = {
                     if (result.file.isDirectory) {
-                        // Handle folder navigation if needed
+                        // Directory navigation handled if needed
                     } else {
-                         FileOpener.openFile(context, result.file)
+                        FileOpener.openFile(context, result.file)
                     }
                 },
                 onLongClick = { expanded.value = true }
-            ),
-        color = if (isSelected) Color(0xFF0F6FFC).copy(alpha = 0.3f) else Color(0xFF1A1C21),
-        shape = cardShape,
-        tonalElevation = 3.dp,
-        shadowElevation = 3.dp
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Thumbnail
-            FileThumbnail(
-                file = result.file,
-                modifier = Modifier.size(36.dp),
-                iconSize = 54.dp
-            )
+            // Icon container with soft blue tint background
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFFEEF2FF)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = FileIcons.getIcon(result.file)),
+                    contentDescription = null,
+                    tint = Color(0xFF5051D8),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
-            // Name + Path Info (LEFT)
+            // File Name + Subtitle (Path and Size)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
                     text = result.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1F2937),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
-                // Show Path + Size
                 Text(
                     text = "${readableFileSize(result.size)} • ${result.path}",
                     fontSize = 12.sp,
-                    color = Color(0xFF9AA0A6),
+                    color = Color(0xFF9CA3AF),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            // Timestamp (RIGHT)
-            Text(
-                text = formatTimestamp(result.lastModified),
-                fontSize = 10.sp,
-                color = Color(0xFF9AA0A6)
-            )
-
-            // Options
+            // Options 3-dots button
             Box {
-                IconButton(onClick = { expanded.value = true }) {
+                IconButton(
+                    onClick = { expanded.value = true },
+                    modifier = Modifier.size(28.dp)
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.more_vertical),
                         contentDescription = "Options",
-                        tint = if (isSelected) Color.White else Color(0xFF9AA0A6),
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
 
