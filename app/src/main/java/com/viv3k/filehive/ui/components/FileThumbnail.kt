@@ -10,12 +10,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +42,7 @@ fun FileThumbnail(
     modifier: Modifier = Modifier,
     iconSize: Dp = 36.dp,
     displayName: String? = null,
+    mediaShape: Shape = CircleShape,
 //    tint: Color?
 ) {
     val context = LocalContext.current
@@ -53,7 +57,7 @@ fun FileThumbnail(
     val isApk = extension == "apk"
 
     if (isImage || isVideo) {
-        Box(modifier = modifier) {
+        Box(modifier = modifier.clip(mediaShape)) {
             AsyncImage(
                 model = ImageRequest.Builder(context)
                     .data(file)

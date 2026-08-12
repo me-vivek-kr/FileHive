@@ -1,5 +1,6 @@
 package com.viv3k.filehive.ui.screens.search
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,18 +17,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +79,8 @@ fun SearchScreen(
         onQueryChange = viewModel::onQueryChange,
         onFilterSelected = viewModel::onFilterSelected,
         onRecentSearchClick = viewModel::onRecentSearchClick,
+        onClearRecentSearches = viewModel::clearRecentSearches,
+        onDeleteRecentSearch = viewModel::deleteRecentSearch,
         onSearchAction = { viewModel.addToRecent(searchQuery) },
         onBackClick = onBackClick,
         onHomeClick = onHomeClick,
@@ -92,6 +99,8 @@ fun SearchScreenContent(
     onQueryChange: (String) -> Unit,
     onFilterSelected: (String) -> Unit,
     onRecentSearchClick: (String) -> Unit,
+    onClearRecentSearches: () -> Unit,
+    onDeleteRecentSearch: (String) -> Unit,
     onSearchAction: () -> Unit,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
@@ -119,6 +128,7 @@ fun SearchScreenContent(
         )
     }
 
+    val visibleRecentSearches = recentSearches.take(3)
     val backgroundColor = Color(0xFFF7F9FB)
 
     Box(
@@ -130,7 +140,7 @@ fun SearchScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp)
+
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 100.dp)
         ) {
@@ -138,7 +148,8 @@ fun SearchScreenContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 16.dp)
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -169,7 +180,7 @@ fun SearchScreenContent(
 
                 Text(
                     text = "Search",
-                    fontSize = 20.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1F2937)
                 )
@@ -195,7 +206,7 @@ fun SearchScreenContent(
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 4.dp, horizontal = 2.dp)
+                contentPadding = PaddingValues(vertical = 4.dp, horizontal = 20.dp)
             ) {
                 items(filters) { filter ->
                     FilterChip(
@@ -207,36 +218,58 @@ fun SearchScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             if (searchQuery.isEmpty()) {
-                // -- SHOW RECENT SEARCHES --
-                Text(
-                    text = "Recent Searches",
-                    color = Color(0xFF4B5563),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 14.dp)
-                )
+                if (visibleRecentSearches.isNotEmpty()) {
+                    // -- SHOW RECENT SEARCHES --
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 14.dp)
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Recent Searches",
+                            color = Color(0xFF4B5563),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                val displayRecentSearches = if (recentSearches.isEmpty()) {
-                    listOf("Q3 Financial Reports 2023", "Design System Assets")
-                } else {
-                    recentSearches
-                }
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    displayRecentSearches.forEach { recent ->
-                        RecentSearchItem(
-                            text = recent,
-                            onClick = { onRecentSearchClick(recent) }
+                        Text(
+                            text = "Clear Recent",
+                            color = Color(0xFF5051D8),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                onClearRecentSearches()
+                            }
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                    Column(
+                        modifier = Modifier.animateContentSize()
+                            .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        visibleRecentSearches.forEach { recent ->
+                            key(recent) {
+                                SwipeToDeleteRecentSearchItem(
+                                    text = recent,
+                                    onClick = { onRecentSearchClick(recent) },
+                                    onDelete = { onDeleteRecentSearch(recent) }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+                }
 
                 // -- TOP RESULTS --
                 Text(
@@ -244,7 +277,9 @@ fun SearchScreenContent(
                     color = Color(0xFF5051D8),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 14.dp)
+                    modifier = Modifier
+                        .padding(bottom = 14.dp)
+                        .padding(horizontal = 20.dp)
                 )
 
                 SearchResultItem(
@@ -269,6 +304,7 @@ fun SearchScreenContent(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 14.dp)
+                            .padding(horizontal = 20.dp)
                     )
 
                     Column(
@@ -300,7 +336,7 @@ fun SearchScreenContent(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 12.dp)
+                .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
         ) {
             NeomorphicBottomNav(
                 activeTab = "search",
@@ -314,6 +350,52 @@ fun SearchScreenContent(
                 }
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeToDeleteRecentSearchItem(
+    text: String,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(Color(0xFFFFE4E6))
+                    .padding(end = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.trash),
+                    contentDescription = "Delete recent search",
+                    tint = Color(0xFFDC2626),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    ) {
+        RecentSearchItem(
+            text = text,
+            onClick = onClick
+        )
     }
 }
 
@@ -389,6 +471,8 @@ fun PreviewSearch() {
         onQueryChange = {},
         onFilterSelected = {},
         onRecentSearchClick = {},
+        onClearRecentSearches = {},
+        onDeleteRecentSearch = {},
         onSearchAction = {},
         onBackClick = {},
         onHomeClick = {},

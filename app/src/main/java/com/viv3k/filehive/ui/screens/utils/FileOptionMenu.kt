@@ -1,22 +1,41 @@
 package com.viv3k.filehive.ui.screens.utils
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.viv3k.filehive.R
+import com.viv3k.filehive.ui.utils.NeomorphicSwitch
 
 @Composable
 fun FileOptionsDropdownMenu (
@@ -28,96 +47,122 @@ fun FileOptionsDropdownMenu (
     onRenameClick: () -> Unit,
     onLockClick: () -> Unit = {}
 ){
-    DropdownMenu(
-        expanded = expanded,
+    var lockEnabled by remember { mutableStateOf(false) }
+
+    if (!expanded) return
+
+    Dialog(
         onDismissRequest = onDismissRequest,
-        offset = DpOffset((-12).dp, 0.dp),
-        shape = RoundedCornerShape(16.dp),
-        containerColor = Color(0xFF16181D),
-        modifier = Modifier.width(220.dp)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        DropdownMenuItem(
-            text = { Text("Cut", color = Color.White, fontWeight = FontWeight.Normal) },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.scissors),
-                    contentDescription = null,
-                    tint = Color.White
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.28f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onDismissRequest() }
+        ) {
+            FileOptionsMenuContent(
+                lockEnabled = lockEnabled,
+                onLockChange = { checked ->
+                    lockEnabled = checked
+                    onLockClick()
+                },
+                onDismissRequest = onDismissRequest,
+                onCutClick = onCutClick,
+                onCopyClick = onCopyClick,
+                onDeleteClick = onDeleteClick,
+                onRenameClick = onRenameClick,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 28.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun FileOptionsMenuContent(
+    lockEnabled: Boolean,
+    onLockChange: (Boolean) -> Unit,
+    onDismissRequest: () -> Unit,
+    onCutClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onRenameClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .width(250.dp)
+            .shadow(
+                elevation = 28.dp,
+                shape = RoundedCornerShape(36.dp),
+                ambientColor = Color.Black.copy(alpha = 0.22f),
+                spotColor = Color.Black.copy(alpha = 0.28f)
+            )
+            .clip(RoundedCornerShape(26.dp))
+            .background(Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            FileOptionItem("Open", R.drawable.arrow_up_right, onDismissRequest)
+            FileOptionItem("Share", R.drawable.share, onDismissRequest)
+            MenuDivider()
+
+            FileOptionItem("Cut", R.drawable.scissors, onDismissRequest, onCutClick)
+            FileOptionItem("Copy", R.drawable.copy, onDismissRequest, onCopyClick)
+            FileOptionItem("Move", R.drawable.move, onDismissRequest)
+            FileOptionItem("Rename", R.drawable.rename, onDismissRequest, onRenameClick)
+            MenuDivider()
+
+            FileOptionItem("Pin to Quick Access", R.drawable.shortcut, onDismissRequest)
+            FileOptionItem("Archive", R.drawable.archive, onDismissRequest)
+            MenuDivider()
+
+            LockFolderOption(
+                checked = lockEnabled,
+                onCheckedChange = onLockChange
+            )
+            MenuDivider()
+
+            FileOptionItem(
+                text = "Delete",
+                iconRes = R.drawable.trash,
+                onDismissRequest = onDismissRequest,
+                onClick = onDeleteClick,
+                contentColor = Color(0xFFE53935)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(Color(0xFFF6F7FA))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onDismissRequest() },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "×",
+                    color = Color(0xFF6B7280),
+                    fontSize = 22.sp
                 )
-            },
-            onClick = {
-                onCutClick()
-                onDismissRequest()
-            }
-            // modifier = Modifier.background(...) <--- REMOVED THIS
-        )
-
-        // 2. Copy
-        DropdownMenuItem(
-            text = { Text("Copy", color = Color.White) },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.copy),
-                    contentDescription = null,
-                    tint = Color.White
+                Text(
+                    text = "  CLOSE",
+                    color = Color(0xFF374151),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
                 )
-            },
-            onClick = {
-                onCopyClick()
-                onDismissRequest()
             }
-        )
-
-        // 3. Delete (Red Text)
-        DropdownMenuItem(
-            text = { Text("Delete", color = Color(0xFFD32F2F)) },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.trash),
-                    contentDescription = null,
-                    tint = Color(0xFFD32F2F)
-                )
-            },
-            onClick = {
-                onDeleteClick()
-                onDismissRequest()
-            }
-        )
-
-        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
-
-        // 4. Other Standard Items
-        FileOptionItem("Share", R.drawable.share, onDismissRequest)
-        FileOptionItem(
-            "Rename",
-            R.drawable.rename,
-            onDismissRequest,
-            onClick = onRenameClick
-        )
-        FileOptionItem("Archive", R.drawable.archive, onDismissRequest)
-
-        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
-
-        FileOptionItem("Hide", R.drawable.eye_off, onDismissRequest)
-        FileOptionItem(
-            "Lock / Vault", 
-            R.drawable.lock, 
-            onDismissRequest,
-            onClick = {
-                onLockClick()
-            }
-        )
-
-        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
-
-        FileOptionItem("Open Directory", R.drawable.folder_open, onDismissRequest)
-        FileOptionItem("Transfer", R.drawable.file_up, onDismissRequest)
-        FileOptionItem("Add to Favourite", R.drawable.heart, onDismissRequest)
-        FileOptionItem("Create Shortcut", R.drawable.arrow_right, onDismissRequest)
-
-        HorizontalDivider(thickness = 0.5.dp, color = Color.Gray.copy(alpha = 0.3f))
-
-        FileOptionItem("Properties", R.drawable.info, onDismissRequest)
+        }
     }
 }
 
@@ -126,34 +171,98 @@ fun FileOptionItem(
     text: String,
     iconRes: Int,
     onDismissRequest: () -> Unit,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    contentColor: Color = Color(0xFF1F2937)
 ) {
-    DropdownMenuItem(
-        text = { Text(text, color = Color.White, fontSize = 14.sp) },
-        leadingIcon = {
-            Icon(
-                painter = painterResource(id = iconRes),
-                contentDescription = null,
-                tint = Color.White
-            )
-        },
-        onClick = {
-            onClick()
-            onDismissRequest()
-        }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                onClick()
+                onDismissRequest()
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = text,
+            color = contentColor,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun LockFolderOption(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.lock),
+            contentDescription = null,
+            tint = Color(0xFF374151),
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = "Lock Folder",
+            color = Color(0xFF1F2937),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .padding(start = 9.dp)
+                .weight(1f)
+        )
+        NeomorphicSwitch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.height(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun MenuDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 8.dp),
+        thickness = 1.dp,
+        color = Color(0xFFE8EBF0)
     )
 }
 
 @Preview
 @Composable
 fun PreviewFileOption(){
-    FileOptionsDropdownMenu(
-        expanded = true,
-        onDismissRequest = {},
-        onCutClick = {},
-        onCopyClick = {},
-        onDeleteClick = {},
-        onRenameClick = {},
-        onLockClick = {}
-    )
+    Box(
+        modifier = Modifier
+            .background(Color(0xFFF7F9FB))
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        FileOptionsMenuContent(
+            lockEnabled = false,
+            onLockChange = {},
+            onDismissRequest = {},
+            onCutClick = {},
+            onCopyClick = {},
+            onDeleteClick = {},
+            onRenameClick = {}
+        )
+    }
 }

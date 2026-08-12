@@ -7,16 +7,23 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,6 +34,7 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -34,8 +42,10 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.viv3k.filehive.R
 
 private val ChipShape = RoundedCornerShape(50)
 private val DefaultSoftShape = RoundedCornerShape(32.dp)
@@ -250,6 +260,108 @@ fun NeomorphicSwitch(
                     offsetY = 2.dp,
                     backgroundColor = Color.White
                 )
+        )
+    }
+}
+
+@Composable
+fun NeomorphicViewSwitcher(
+    isGrid: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val offset by animateDpAsState(targetValue = if (isGrid) 0.dp else 40.dp, label = "switcher")
+
+    Box(
+        modifier = Modifier
+            .width(88.dp)
+            .height(42.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(0xFFE8EBF0))
+            .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = offset)
+                .size(40.dp)
+                .shadow(elevation = 2.dp, shape = CircleShape)
+                .background(Color.White, CircleShape)
+        )
+
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onToggle(true) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.grid),
+                    contentDescription = "Grid",
+                    tint = if (isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { onToggle(false) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.list),
+                    contentDescription = "List",
+                    tint = if (!isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NeomorphicFilterButton(onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = Modifier.height(42.dp).width(52.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(R.drawable.ic_filter), // Replace with filter icon if available
+                contentDescription = "Filter",
+                tint = Color(0xFF5051D8),
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun NeomorphicFAB(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.soft()
+            .size(56.dp)
+            .shadow(elevation = 8.dp, shape = CircleShape)
+            .background(Color.White, CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.plus),
+            contentDescription = "Add",
+            tint = Color(0xFF5051D8),
+            modifier = Modifier.size(28.dp)
         )
     }
 }

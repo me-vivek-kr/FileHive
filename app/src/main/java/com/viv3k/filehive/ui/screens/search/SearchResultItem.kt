@@ -1,6 +1,5 @@
 package com.viv3k.filehive.ui.screens.search
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,20 +20,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.viv3k.filehive.R
 import com.viv3k.filehive.data.common.FileOpener
-import com.viv3k.filehive.ui.components.FileIcons
+import com.viv3k.filehive.ui.components.NeumorphicIconBadge
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
 import com.viv3k.filehive.ui.utils.readableFileSize
 import com.viv3k.filehive.ui.utils.soft
+import java.io.File
 
 @Composable
 fun SearchResultItem(
@@ -45,11 +44,12 @@ fun SearchResultItem(
     val context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     val isSelected = expanded.value
-    val cardShape = RoundedCornerShape(24.dp)
+    val cardShape = RoundedCornerShape(50.dp)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 20.dp)
             .soft(
                 shape = cardShape,
                 cornerRadius = 24.dp,
@@ -75,21 +75,12 @@ fun SearchResultItem(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon container with soft blue tint background
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFFEEF2FF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = FileIcons.getIcon(result.file)),
-                    contentDescription = null,
-                    tint = Color(0xFF5051D8),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+
+            NeumorphicIconBadge(
+                icon = painterResource(id = result.iconRes),
+                iconSize = 32.dp,
+                preserveIconColors = true
+            )
 
             Spacer(modifier = Modifier.width(14.dp))
 
@@ -145,4 +136,19 @@ fun SearchResultItem(
             }
         }
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+fun PreviewSearchResultItem(){
+    SearchResultItem(
+        result = SearchResult(
+            name = "Hero_Banner_Final.png",
+            path = "/Internal/Download/",
+            file = File("/storage/emulated/0/Download/Hero_Banner_Final.png"),
+            iconRes = R.drawable.image_file,
+            size = (4.2 * 1024 * 1024).toLong(),
+            lastModified = System.currentTimeMillis()
+        )
+    )
 }

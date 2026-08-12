@@ -9,13 +9,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.viv3k.filehive.R
+import com.viv3k.filehive.ui.components.FileIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import java.io.File
 
 data class SearchResult(
@@ -32,7 +33,9 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 
 class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel() {
 
-    private val RECENT_SEARCH_KEY = stringSetPreferencesKey("recent_queries")
+    private val RECENT_SEARCH_KEY = stringPreferencesKey("recent_queries_ordered")
+    private val LEGACY_RECENT_SEARCH_KEY = stringSetPreferencesKey("recent_queries")
+    private val MAX_RECENT_SEARCHES = 3
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -49,7 +52,7 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
     // Recent searches - observing from DataStore
     val recentSearches: StateFlow<List<String>> = dataStore.data
         .map { prefs ->
-            prefs[RECENT_SEARCH_KEY]?.toList() ?: emptyList()
+            prefs.getRecentSearches()
         }
         .stateIn(
             scope = viewModelScope,
@@ -78,14 +81,15 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
     }
 
     fun onFilterSelected(filter: String) {
-        _selectedFilter.value = filter
+        val nextFilter = if (_selectedFilter.value == filter) "All" else filter
+        _selectedFilter.value = nextFilter
         // Re-run search with new filter if query exists
         val currentQuery = _searchQuery.value
         if (currentQuery.isNotEmpty()) {
             searchJob?.cancel()
             searchJob = viewModelScope.launch {
                 _isSearching.value = true
-                performSearch(currentQuery, filter)
+                performSearch(currentQuery, nextFilter)
             }
         }
     }
@@ -95,14 +99,28 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
 
         viewModelScope.launch {
             dataStore.edit { prefs ->
-                // Get existing, remove duplicate, add to top, take 5
-                val currentSet = prefs[RECENT_SEARCH_KEY] ?: emptySet()
-                val newList = currentSet.toMutableList()
-
+                val newList = prefs.getRecentSearches().toMutableList()
                 newList.remove(query)
                 newList.add(0, query)
 
-                prefs[RECENT_SEARCH_KEY] = newList.take(5).toSet()
+                prefs.setRecentSearches(newList)
+            }
+        }
+    }
+
+    fun clearRecentSearches() {
+        viewModelScope.launch {
+            dataStore.edit { prefs ->
+                prefs.remove(RECENT_SEARCH_KEY)
+                prefs.remove(LEGACY_RECENT_SEARCH_KEY)
+            }
+        }
+    }
+
+    fun deleteRecentSearch(query: String) {
+        viewModelScope.launch {
+            dataStore.edit { prefs ->
+                prefs.setRecentSearches(prefs.getRecentSearches().filterNot { it == query })
             }
         }
     }
@@ -110,6 +128,20 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
     fun onRecentSearchClick(query: String) {
         onQueryChange(query)
         addToRecent(query)
+    }
+
+    private fun Preferences.getRecentSearches(): List<String> {
+        val orderedSearches = this[RECENT_SEARCH_KEY]?.let { stored ->
+            runCatching { Json.decodeFromString<List<String>>(stored) }.getOrDefault(emptyList())
+        }
+
+        return (orderedSearches ?: this[LEGACY_RECENT_SEARCH_KEY]?.toList().orEmpty())
+            .take(MAX_RECENT_SEARCHES)
+    }
+
+    private fun MutablePreferences.setRecentSearches(searches: List<String>) {
+        this[RECENT_SEARCH_KEY] = Json.encodeToString(searches.take(MAX_RECENT_SEARCHES))
+        remove(LEGACY_RECENT_SEARCH_KEY)
     }
 
     private suspend fun performSearch(query: String, filter: String) {
@@ -153,7 +185,7 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
         return when (filter) {
             "Documents" -> ext in listOf("pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt")
             "Images" -> ext in listOf("jpg", "jpeg", "png", "gif", "webp", "bmp")
-            "Videos" -> ext in listOf("mp4", "mkv", "avi", "mov", "3gp")
+            "Video" -> ext in listOf("mp4", "mkv", "avi", "mov", "3gp")
             "Audio" -> ext in listOf("mp3", "wav", "aac", "m4a", "flac")
             "Archives" -> ext in listOf("zip", "rar", "7z", "tar", "gz")
             else -> true
@@ -161,13 +193,11 @@ class SearchViewModel(private val dataStore: DataStore<Preferences>) : ViewModel
     }
 
     private fun mapFileToResult(file: File): SearchResult {
-        val icon = R.drawable.file
-
         return SearchResult(
             name = file.name,
             path = file.parent ?: "",
             file = file,
-            iconRes = icon,
+            iconRes = FileIcons.getIcon(file),
             size = file.length(),
             lastModified = file.lastModified()
         )

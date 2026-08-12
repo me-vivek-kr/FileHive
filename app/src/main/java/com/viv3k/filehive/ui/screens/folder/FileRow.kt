@@ -70,6 +70,10 @@ fun FileRow(
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val extension = entry.file.extension.lowercase()
+            val isMedia = extension in listOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "mp4", "mkv", "avi", "mov", "webm")
+            val thumbnailPadding = if (isMedia) 2.dp else 12.dp
+
             // Recessed circular icon container
             Box(
                 modifier = Modifier
@@ -86,7 +90,7 @@ fun FileRow(
                         ),
                         shape = CircleShape
                     )
-                    .padding(12.dp),
+                    .padding(thumbnailPadding),
                 contentAlignment = Alignment.Center
             ) {
                 FileThumbnail(

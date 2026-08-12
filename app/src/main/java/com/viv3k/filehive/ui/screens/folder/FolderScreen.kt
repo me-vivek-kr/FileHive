@@ -1,33 +1,21 @@
 package com.viv3k.filehive.ui.screens.folder
 
 import android.widget.Toast
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,17 +27,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.viv3k.filehive.R
 import com.viv3k.filehive.data.common.FileOpener
 import com.viv3k.filehive.data.database.AppDatabase
 import com.viv3k.filehive.data.database.FolderCacheRepository
@@ -57,17 +41,20 @@ import com.viv3k.filehive.data.model.FolderModel
 import com.viv3k.filehive.data.model.FolderUiState
 import com.viv3k.filehive.data.model.FolderViewModel
 import com.viv3k.filehive.ui.components.BreadcrumbNavigation
-import com.viv3k.filehive.ui.components.LoadingListShimmer
+import com.viv3k.filehive.ui.components.LoadingShimmer
 import com.viv3k.filehive.ui.components.NeomorphicBottomNav
 import com.viv3k.filehive.ui.screens.utils.DeleteConfirmationDialog
 import com.viv3k.filehive.ui.screens.utils.NameInputDialog
-import com.viv3k.filehive.ui.utils.soft
+import com.viv3k.filehive.ui.utils.NeomorphicFAB
+import com.viv3k.filehive.ui.utils.NeomorphicFilterButton
+import com.viv3k.filehive.ui.utils.NeomorphicViewSwitcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-@OptIn(ExperimentalFoundationApi::class)
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FolderScreen(
     folderPath: String,
@@ -99,6 +86,10 @@ fun FolderScreen(
 
     var showRenameDialog by remember { mutableStateOf(false) }
     var fileToRename by remember { mutableStateOf<File?>(null) }
+    var showSortSheet by remember { mutableStateOf(false) }
+    var sortOption by remember { mutableStateOf(FolderSortOption.Name) }
+    var sortAscending by remember { mutableStateOf(true) }
+    var foldersFirst by remember { mutableStateOf(true) }
 
     val refreshTrigger by viewModel.refreshTrigger.collectAsState()
     val uiState by viewModel.state.collectAsState()
@@ -108,6 +99,22 @@ fun FolderScreen(
     val children = when(val state = uiState) {
         is FolderUiState.Loaded -> state.files
         else -> emptyList()
+    }
+    val visibleChildren = remember(children, sortOption, sortAscending, foldersFirst) {
+        children.sortedWith { first, second ->
+            if (foldersFirst) {
+                val folderCompare = compareValues(!first.file.isDirectory, !second.file.isDirectory)
+                if (folderCompare != 0) return@sortedWith folderCompare
+            }
+
+            val result = when (sortOption) {
+                FolderSortOption.Name -> first.file.name.lowercase().compareTo(second.file.name.lowercase())
+                FolderSortOption.DateModified -> first.lastModified.compareTo(second.lastModified)
+                FolderSortOption.Size -> first.totalSize.compareTo(second.totalSize)
+            }
+
+            if (sortAscending) result else -result
+        }
     }
 
     val handleRename: (String) -> Unit = { newName ->
@@ -261,7 +268,7 @@ fun FolderScreen(
 
                     item {
                         NeomorphicFilterButton(onClick = {
-                            Toast.makeText(context, "Filter clicked", Toast.LENGTH_SHORT).show()
+                            showSortSheet = true
                         })
                     }
                 }
@@ -270,21 +277,21 @@ fun FolderScreen(
 
                 when {
                     loading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        LoadingListShimmer()
+                        LoadingShimmer(isGrid = isGrid)
                     }
 
                     !exists -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Text("Folder does not exist", color = Color(0xFF9AA0A6))
                     }
 
-                    children.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    visibleChildren.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Text("Folder is empty", color = Color(0xFF9AA0A6))
                     }
 
                     else -> {
                         if (isGrid) {
                             FileGrid(
-                                files = children,
+                                files = visibleChildren,
                                 onFolderClick = onFolderClick,
                                 onImageClick = onImageClick,
                                 onFileClick = { file ->
@@ -310,7 +317,7 @@ fun FolderScreen(
                                 contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
                             ) {
                                 items(
-                                    items = children,
+                                    items = visibleChildren,
                                     key = { it.file.absolutePath }
                                 ) { entry ->
                                     Box(modifier = Modifier.animateItem()) {
@@ -362,7 +369,7 @@ fun FolderScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 12.dp)
+                    .padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
             ) {
                 NeomorphicBottomNav(
                     activeTab = "files",
@@ -457,109 +464,22 @@ fun FolderScreen(
                 .clickable { menuExpanded = false }
         )
     }
-}
 
-@Composable
-fun NeomorphicViewSwitcher(
-    isGrid: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    val offset by animateDpAsState(targetValue = if (isGrid) 0.dp else 40.dp, label = "switcher")
-
-    Box(
-        modifier = Modifier
-            .width(88.dp)
-            .height(42.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFFE8EBF0))
-            .border(1.dp, Color.Black.copy(alpha = 0.05f), RoundedCornerShape(24.dp))
-            .padding(4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .offset(x = offset)
-                .size(40.dp)
-                .shadow(elevation = 2.dp, shape = CircleShape)
-                .background(Color.White, CircleShape)
-        )
-
-        Row(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onToggle(true) },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.grid),
-                    contentDescription = "Grid",
-                    tint = if (isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { onToggle(false) },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.list),
-                    contentDescription = "List",
-                    tint = if (!isGrid) Color(0xFF5051D8) else Color(0xFF9AA0A6),
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun NeomorphicFilterButton(onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        color = Color.White,
-        shadowElevation = 2.dp,
-        modifier = Modifier.height(42.dp).width(42.dp)
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(
-                painter = painterResource(id = R.drawable.settings), // Replace with filter icon if available
-                contentDescription = "Filter",
-                tint = Color(0xFF5051D8),
-                modifier = Modifier.size(22.dp)
-            )
-        }
-    }
-}
-
-@Composable
-fun NeomorphicFAB(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier.soft()
-            .size(56.dp)
-            .shadow(elevation = 8.dp, shape = CircleShape)
-            .background(Color.White, CircleShape)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.plus),
-            contentDescription = "Add",
-            tint = Color(0xFF5051D8),
-            modifier = Modifier.size(28.dp)
+    if (showSortSheet) {
+        SortFilesBottomSheet(
+            selectedSort = sortOption,
+            ascending = sortAscending,
+            foldersFirst = foldersFirst,
+            onSortSelected = { sortOption = it },
+            onAscendingChange = { sortAscending = it },
+            onFoldersFirstChange = { foldersFirst = it },
+            onDismiss = { showSortSheet = false },
+            onApply = { showSortSheet = false }
         )
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

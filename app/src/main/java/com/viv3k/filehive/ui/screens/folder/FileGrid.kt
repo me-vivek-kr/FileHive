@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -27,20 +28,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Brush.Companion.verticalGradient
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.viv3k.filehive.R
 import com.viv3k.filehive.data.model.FolderModel
+import com.viv3k.filehive.ui.components.FileIcons
 import com.viv3k.filehive.ui.components.FileThumbnail
 import com.viv3k.filehive.ui.screens.utils.FileOptionsDropdownMenu
 import com.viv3k.filehive.ui.utils.readableFileSize
 import com.viv3k.filehive.ui.utils.soft
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun FileGrid(
@@ -56,9 +63,9 @@ fun FileGrid(
     LazyVerticalGrid(
         columns = GridCells.Fixed(2), // Redesigned to 2 columns
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp, top = 16.dp, start = 12.dp, end = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(bottom = 100.dp, top = 18.dp, start = 20.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         items(files) { entry ->
             FileGridItem(
@@ -92,8 +99,18 @@ fun FileGridItem(
     onLockOptionClick: (File) -> Unit = {}
 ){
     val expanded = remember { mutableStateOf(false) }
-    val cardShape = RoundedCornerShape(32.dp)
+    val cardShape = RoundedCornerShape(34.dp)
+    val previewShape = RoundedCornerShape(32.dp)
     val interactionSource = remember { MutableInteractionSource() }
+    val extension = entry.file.extension.lowercase()
+    val isImage = extension in imageExtensions
+    val isVideo = extension in videoExtensions
+    val showTypeBadge = isImage || isVideo
+    val previewIcon = if (entry.file.isDirectory || extension.isBlank()) {
+        R.drawable.folder_new
+    } else {
+        FileIcons.getIcon(entry.file)
+    }
 
 // Anchor box for the dropdown menu
     Box {
@@ -102,7 +119,10 @@ fun FileGridItem(
                 .fillMaxWidth()
                 .soft(
                     shape = cardShape,
+                    cornerRadius = 34.dp,
                     backgroundColor = Color.White,
+                    blurRadius = 18.dp,
+                    offsetY = 8.dp,
                     interactionSource = interactionSource
                 )
                 .combinedClickable(
@@ -117,14 +137,25 @@ fun FileGridItem(
                     .padding(16.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                val extension = entry.file.extension.lowercase()
-                val isMedia = extension in listOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "mp4", "mkv", "avi", "mov", "webm")
-
-                // Icon recessed container
+//                Box(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(125.dp)
+//                        .clip(previewShape)
+//                        .background(
+//                            Brush.verticalGradient(
+//                                colors = listOf(
+//                                    Color(0xFFEFF3F7),
+//                                    Color(0xFFF9FBFC)
+//                                )
+//                            )
+//                        ),
+//                    contentAlignment = Alignment.Center
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
+                        .fillMaxWidth()
+                        .height(125.dp)
+                        .clip(previewShape)
                         .background(Color(0xFFE8EBF0))
                         .border(
                             width = 1.dp,
@@ -134,61 +165,71 @@ fun FileGridItem(
                                     Color.White.copy(alpha = 0.5f)
                                 )
                             ),
-                            shape = CircleShape
-                        )
-                        .padding(12.dp),
+                            shape = previewShape
+                        ),
+//                        .padding(thumbnailPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isMedia) {
+                    if (isImage || isVideo) {
                         FileThumbnail(
                             file = entry.file,
-                            modifier = Modifier.fillMaxSize().padding(12.dp).clip(CircleShape),
-                            iconSize = 32.dp
+                            modifier = Modifier.fillMaxSize(),
+                            iconSize = 72.dp,
+                            mediaShape = previewShape
                         )
                     } else {
-                        FileThumbnail(
-                            file = entry.file,
-                            modifier = Modifier.size(32.dp),
-                            iconSize = 32.dp
+                        Icon(
+                            painter = painterResource(id = previewIcon),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(58.dp)
+                        )
+                    }
+
+                    if (showTypeBadge) {
+                        FileTypeBadge(
+                            icon = if (isVideo) R.drawable.video else R.drawable.image,
+                            tint = if (isVideo) Color(0xFFC92A2A) else Color(0xFF4648D4),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Bold folder/file name
                 Text(
                     text = entry.file.name,
-                    color = Color.Black,
+                    color = Color(0xFF20242A),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // Footer row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // "X items" on the left
                     Text(
-                        text = if (entry.file.isDirectory) "${entry.fileCount} items" else "1 file",
-                        color = Color(0xFF9AA0A6),
-                        fontSize = 11.sp,
+                        text = if (entry.file.isDirectory) "${entry.fileCount} items" else relativeModifiedTime(entry.lastModified),
+                        color = Color(0xFF7D8191),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    // "Size" on the right
                     Text(
                         text = readableFileSize(entry.totalSize),
-                        color = Color(0xFF9AA0A6),
-                        fontSize = 11.sp,
-                        textAlign = TextAlign.End
+                        color = Color(0xFF7D8191),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
                     )
                 }
             }
@@ -213,6 +254,51 @@ fun FileGridItem(
                 onLockOptionClick(entry.file)
             }
         )
+    }
+}
+
+@Composable
+private fun FileTypeBadge(
+    icon: Int,
+    tint: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .soft(
+                shape = CircleShape,
+                cornerRadius = 18.dp,
+                backgroundColor = Color.White,
+                blurRadius = 8.dp,
+                offsetY = 3.dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+private val imageExtensions = setOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heic", "heif")
+private val videoExtensions = setOf("mp4", "mkv", "avi", "mov", "webm", "3gp", "mpeg", "mpg", "m4v")
+
+private fun relativeModifiedTime(lastModified: Long): String {
+    val diffMillis = (System.currentTimeMillis() - lastModified).coerceAtLeast(0L)
+    val minute = 60_000L
+    val hour = 60 * minute
+    val day = 24 * hour
+
+    return when {
+        diffMillis < minute -> "now"
+        diffMillis < hour -> "${diffMillis / minute}m ago"
+        diffMillis < day -> "${diffMillis / hour}h ago"
+        diffMillis < 7 * day -> "${diffMillis / day}d ago"
+        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(lastModified))
     }
 }
 

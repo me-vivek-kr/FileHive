@@ -1,6 +1,7 @@
 package com.viv3k.filehive.ui.screens.homescreen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +58,7 @@ fun QuickAccessGrid(
                         item = item,
                         modifier = Modifier
                             .weight(1f)
+                            .height(136.dp)
                             .clickableNoRipple { onItemClick(item) }
                     )
                 }
@@ -64,6 +67,7 @@ fun QuickAccessGrid(
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Composable
 private fun QuickAccessCard(
     item: QuickAccessItem,
@@ -76,7 +80,7 @@ private fun QuickAccessCard(
                 cornerRadius = 32.dp,
                 backgroundColor = Color.White
             )
-            .padding(vertical = 24.dp, horizontal = 16.dp),
+            .padding(vertical = 16.dp, horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -99,10 +103,14 @@ private fun QuickAccessCard(
 
             Text(
                 text = item.label,
+                modifier = Modifier.fillMaxWidth()
+                    .basicMarquee(iterations = Int.MAX_VALUE),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1F2937),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Clip
             )
         }
     }
